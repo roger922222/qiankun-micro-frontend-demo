@@ -1,0 +1,23 @@
+{
+  "name": "qiankun-micro-frontend-demo",
+  "version": "1.0.0",
+  "description": "微前端应用",
+  "homepage": "https://github.com/roger922222/qiankun-micro-frontend-demo#readme",
+  "bugs": {
+    "url": "https://github.com/roger922222/qiankun-micro-frontend-demo/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/roger922222/qiankun-micro-frontend-demo.git"
+  },
+  "license": "MIT",
+  "author": "roger",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "qiankun": "^2.10.16"
+  }
+}
