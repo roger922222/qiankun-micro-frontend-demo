@@ -1,0 +1,60 @@
+/**
+ * 微应用容器样式
+ */
+
+.micro-app-wrapper {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.micro-app-container {
+  width: 100%;
+  height: 100%;
+  border: none;
+  overflow: auto;
+}
+
+.micro-app-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 400px;
+  background-color: var(--color-background-primary);
+}
+
+.micro-app-loading .ant-spin-text {
+  color: var(--color-text-secondary);
+  margin-top: 16px;
+}
+
+.micro-app-error {
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+}
+
+.micro-app-error .ant-alert {
+  max-width: 500px;
+  width: 100%;
+}
+
+/* 微应用样式隔离 */
+.micro-app-container > * {
+  box-sizing: border-box;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .micro-app-loading {
+    height: 200px;
+  }
+  
+  .micro-app-error {
+    padding: 16px;
+    min-height: 200px;
+  }
+}

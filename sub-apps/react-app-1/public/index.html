@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="React用户管理子应用 - Redux Toolkit状态管理" />
+    <title>用户管理系统</title>
+    
+    <style>
+      /* 初始加载样式 */
+      #root {
+        width: 100%;
+        height: 100vh;
+        margin: 0;
+        padding: 0;
+      }
+      
+      /* 微前端容器样式 */
+      .micro-app-container {
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+      }
+      
+      /* 加载动画 */
+      .loading-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 200px;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- 应用根节点 -->
+    <div id="root">
+      <div class="loading-container">
+        正在加载用户管理系统...
+      </div>
+    </div>
+    
+    <!-- 微前端入口脚本 -->
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

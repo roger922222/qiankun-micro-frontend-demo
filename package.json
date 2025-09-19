@@ -1,7 +1,44 @@
 {
   "name": "qiankun-micro-frontend-demo",
   "version": "1.0.0",
-  "description": "微前端应用",
+  "description": "完整的qiankun微前端架构示例项目",
+  "main": "index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:main\" \"npm run dev:subs\"",
+    "dev:main": "cd main-app && npm run dev",
+    "dev:subs": "concurrently \"npm run dev:react-1\" \"npm run dev:react-2\" \"npm run dev:react-3\" \"npm run dev:react-4\" \"npm run dev:react-5\" \"npm run dev:vue-1\" \"npm run dev:vue-2\" \"npm run dev:vue-3\"",
+    "dev:react-1": "cd sub-apps/react-app-1 && npm run dev",
+    "dev:react-2": "cd sub-apps/react-app-2 && npm run dev",
+    "dev:react-3": "cd sub-apps/react-app-3 && npm run dev",
+    "dev:react-4": "cd sub-apps/react-app-4 && npm run dev",
+    "dev:react-5": "cd sub-apps/react-app-5 && npm run dev",
+    "dev:vue-1": "cd sub-apps/vue-app-1 && npm run dev",
+    "dev:vue-2": "cd sub-apps/vue-app-2 && npm run dev",
+    "dev:vue-3": "cd sub-apps/vue-app-3 && npm run dev",
+    "build": "npm run build:main && npm run build:subs",
+    "build:main": "cd main-app && npm run build",
+    "build:subs": "npm run build:react-1 && npm run build:react-2 && npm run build:react-3 && npm run build:react-4 && npm run build:react-5 && npm run build:vue-1 && npm run build:vue-2 && npm run build:vue-3",
+    "build:react-1": "cd sub-apps/react-app-1 && npm run build",
+    "build:react-2": "cd sub-apps/react-app-2 && npm run build",
+    "build:react-3": "cd sub-apps/react-app-3 && npm run build",
+    "build:react-4": "cd sub-apps/react-app-4 && npm run build",
+    "build:react-5": "cd sub-apps/react-app-5 && npm run build",
+    "build:vue-1": "cd sub-apps/vue-app-1 && npm run build",
+    "build:vue-2": "cd sub-apps/vue-app-2 && npm run build",
+    "build:vue-3": "cd sub-apps/vue-app-3 && npm run build",
+    "install:all": "npm install && npm run install:main && npm run install:subs",
+    "install:main": "cd main-app && npm install",
+    "install:subs": "cd sub-apps/react-app-1 && npm install && cd ../react-app-2 && npm install && cd ../react-app-3 && npm install && cd ../react-app-4 && npm install && cd ../react-app-5 && npm install && cd ../vue-app-1 && npm install && cd ../vue-app-2 && npm install && cd ../vue-app-3 && npm install",
+    "lint": "npm run lint:main && npm run lint:subs",
+    "lint:main": "cd main-app && npm run lint",
+    "lint:subs": "cd sub-apps/react-app-1 && npm run lint && cd ../react-app-2 && npm run lint && cd ../react-app-3 && npm run lint && cd ../react-app-4 && npm run lint && cd ../react-app-5 && npm run lint && cd ../vue-app-1 && npm run lint && cd ../vue-app-2 && npm run lint && cd ../vue-app-3 && npm run lint",
+    "test": "npm run test:main && npm run test:subs",
+    "test:main": "cd main-app && npm run test",
+    "test:subs": "cd sub-apps/react-app-1 && npm run test && cd ../react-app-2 && npm run test && cd ../react-app-3 && npm run test && cd ../react-app-4 && npm run test && cd ../react-app-5 && npm run test && cd ../vue-app-1 && npm run test && cd ../vue-app-2 && npm run test && cd ../vue-app-3 && npm run test",
+    "clean": "rimraf **/node_modules **/dist **/build",
+    "postinstall": "husky install",
+    "start:all": "./scripts/start-all.sh"
+  },
   "homepage": "https://github.com/roger922222/qiankun-micro-frontend-demo#readme",
   "bugs": {
     "url": "https://github.com/roger922222/qiankun-micro-frontend-demo/issues"
@@ -10,14 +47,36 @@
     "type": "git",
     "url": "git+https://github.com/roger922222/qiankun-micro-frontend-demo.git"
   },
-  "license": "MIT",
+  "keywords": [
+    "qiankun",
+    "micro-frontend",
+    "react",
+    "vue",
+    "typescript",
+    "微前端"
+  ],
   "author": "roger",
-  "type": "commonjs",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^7.6.0",
+    "husky": "^8.0.3",
+    "lint-staged": "^13.2.0",
+    "rimraf": "^4.4.0"
   },
-  "dependencies": {
-    "qiankun": "^2.10.16"
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx,vue}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{css,scss,less}": [
+      "prettier --write"
+    ],
+    "*.{json,md}": [
+      "prettier --write"
+    ]
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
   }
 }

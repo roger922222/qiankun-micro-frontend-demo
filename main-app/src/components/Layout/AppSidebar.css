@@ -1,0 +1,191 @@
+/**
+ * 应用侧边栏样式
+ */
+
+.app-sidebar {
+  background: var(--color-background-primary);
+  border-right: 1px solid var(--color-border-secondary);
+  box-shadow: var(--shadow-sm);
+  position: relative;
+  z-index: var(--z-sticky);
+}
+
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  padding: 16px;
+  border-bottom: 1px solid var(--color-border-secondary);
+  height: 64px;
+  gap: 12px;
+}
+
+.logo-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+  color: white;
+  font-size: 18px;
+  font-weight: bold;
+  border-radius: var(--border-radius-md);
+  flex-shrink: 0;
+}
+
+.logo-text {
+  overflow: hidden;
+}
+
+.logo-title {
+  font-size: var(--font-size-md);
+  font-weight: 600;
+  color: var(--color-text-primary);
+  line-height: 1.2;
+  margin: 0;
+}
+
+.logo-subtitle {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  line-height: 1.2;
+  margin: 0;
+}
+
+.sidebar-menu {
+  border-right: none;
+  background: transparent;
+  flex: 1;
+}
+
+.sidebar-menu .ant-menu-item {
+  margin: 4px 8px;
+  border-radius: var(--border-radius-md);
+  height: 40px;
+  line-height: 40px;
+}
+
+.sidebar-menu .ant-menu-submenu {
+  margin: 4px 8px;
+}
+
+.sidebar-menu .ant-menu-submenu > .ant-menu-submenu-title {
+  border-radius: var(--border-radius-md);
+  height: 40px;
+  line-height: 40px;
+  margin: 0;
+}
+
+.sidebar-menu .ant-menu-item-selected {
+  background-color: var(--color-primary-light);
+  color: var(--color-primary);
+}
+
+.sidebar-menu .ant-menu-item:hover {
+  background-color: var(--color-fill-primary);
+}
+
+.sidebar-menu .ant-menu-submenu-title:hover {
+  background-color: var(--color-fill-primary);
+}
+
+/* 应用状态指示器 */
+.app-status {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 16px;
+  border-top: 1px solid var(--color-border-secondary);
+  background: var(--color-background-secondary);
+}
+
+.status-title {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.status-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.status-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.status-online {
+  background-color: var(--color-success);
+}
+
+.status-offline {
+  background-color: var(--color-error);
+}
+
+.status-loading {
+  background-color: var(--color-warning);
+}
+
+.status-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 折叠状态样式 */
+.app-sidebar.ant-layout-sider-collapsed .sidebar-logo {
+  padding: 16px 12px;
+  justify-content: center;
+}
+
+.app-sidebar.ant-layout-sider-collapsed .logo-text {
+  display: none;
+}
+
+.app-sidebar.ant-layout-sider-collapsed .app-status {
+  display: none;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .app-sidebar {
+    position: fixed;
+    left: 0;
+    top: 64px;
+    bottom: 0;
+    z-index: var(--z-modal);
+  }
+  
+  .app-sidebar.ant-layout-sider-collapsed {
+    left: -64px;
+  }
+}
+
+/* 暗色主题适配 */
+[data-theme="dark"] .app-sidebar {
+  background: var(--color-background-primary);
+  border-right-color: var(--color-border-primary);
+}
+
+[data-theme="dark"] .sidebar-logo {
+  border-bottom-color: var(--color-border-primary);
+}
+
+[data-theme="dark"] .app-status {
+  background: var(--color-background-secondary);
+  border-top-color: var(--color-border-primary);
+}

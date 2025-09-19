@@ -1,0 +1,45 @@
+/* React商品管理应用样式 */
+
+.product-app-layout {
+  min-height: 100vh;
+}
+
+.product-app-content {
+  background: #f0f2f5;
+}
+
+.product-app-main {
+  margin: 24px;
+  padding: 24px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.product-app-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* 商品卡片样式 */
+.product-card {
+  transition: all 0.3s ease;
+}
+
+.product-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+/* 状态标签样式 */
+.status-tag {
+  font-weight: 500;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .product-app-main {
+    margin: 16px;
+    padding: 16px;
+  }
+}

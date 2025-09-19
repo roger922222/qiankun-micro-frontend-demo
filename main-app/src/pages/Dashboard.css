@@ -1,0 +1,166 @@
+/**
+ * 仪表盘页面样式
+ */
+
+.dashboard-page {
+  padding: 24px;
+  background: var(--color-background-secondary);
+  min-height: calc(100vh - 64px - 70px); /* 减去header和footer高度 */
+}
+
+.dashboard-header {
+  margin-bottom: 24px;
+}
+
+.dashboard-header .ant-typography {
+  margin-bottom: 8px;
+}
+
+.stats-row {
+  margin-bottom: 24px;
+}
+
+.stats-row .ant-card {
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition-normal);
+}
+
+.stats-row .ant-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.growth-indicator {
+  font-size: var(--font-size-xs);
+  margin-left: 8px;
+}
+
+.growth-indicator.positive {
+  color: var(--color-success);
+}
+
+.growth-indicator.negative {
+  color: var(--color-error);
+}
+
+.content-row {
+  margin-bottom: 24px;
+}
+
+.content-row .ant-card {
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-sm);
+  height: 100%;
+}
+
+.app-status-card .app-status-summary {
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--color-border-secondary);
+}
+
+.app-status-progress {
+  margin-bottom: 16px;
+}
+
+.app-status-progress .ant-typography {
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.recent-activities-card .ant-list-item {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--color-border-tertiary);
+}
+
+.recent-activities-card .ant-list-item:last-child {
+  border-bottom: none;
+}
+
+.activity-time {
+  font-size: var(--font-size-xs);
+  margin-top: 4px;
+}
+
+.quick-actions-row .ant-card {
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.quick-actions-card .ant-row {
+  margin: 0;
+}
+
+.quick-action-item {
+  text-align: center;
+  cursor: pointer;
+  transition: var(--transition-fast);
+  border-radius: var(--border-radius-md);
+}
+
+.quick-action-item:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.quick-action-item .action-icon {
+  font-size: 24px;
+  color: var(--color-primary);
+  margin-bottom: 8px;
+}
+
+.quick-action-item .action-title {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .dashboard-page {
+    padding: 16px;
+  }
+  
+  .dashboard-header {
+    margin-bottom: 16px;
+  }
+  
+  .stats-row,
+  .content-row,
+  .quick-actions-row {
+    margin-bottom: 16px;
+  }
+  
+  .app-status-summary .ant-space {
+    flex-wrap: wrap;
+  }
+  
+  .quick-action-item .action-icon {
+    font-size: 20px;
+  }
+  
+  .quick-action-item .action-title {
+    font-size: var(--font-size-xs);
+  }
+}
+
+/* 暗色主题适配 */
+[data-theme="dark"] .dashboard-page {
+  background: var(--color-background-secondary);
+}
+
+[data-theme="dark"] .stats-row .ant-card,
+[data-theme="dark"] .content-row .ant-card,
+[data-theme="dark"] .quick-actions-row .ant-card {
+  background: var(--color-background-primary);
+  border-color: var(--color-border-primary);
+}
+
+[data-theme="dark"] .app-status-summary {
+  border-bottom-color: var(--color-border-primary);
+}
+
+[data-theme="dark"] .recent-activities-card .ant-list-item {
+  border-bottom-color: var(--color-border-tertiary);
+}

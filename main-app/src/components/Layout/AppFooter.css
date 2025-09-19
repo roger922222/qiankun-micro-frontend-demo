@@ -1,0 +1,71 @@
+/**
+ * 应用底部样式
+ */
+
+.app-footer {
+  background: var(--color-background-secondary);
+  border-top: 1px solid var(--color-border-secondary);
+  padding: 16px 24px;
+  text-align: center;
+}
+
+.footer-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.footer-main {
+  display: flex;
+  align-items: center;
+}
+
+.footer-links {
+  display: flex;
+  align-items: center;
+}
+
+.heart-icon {
+  color: var(--color-error);
+  margin: 0 4px;
+}
+
+.github-link {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--color-text-secondary);
+  transition: var(--transition-fast);
+}
+
+.github-link:hover {
+  color: var(--color-primary);
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .app-footer {
+    padding: 12px 16px;
+  }
+  
+  .footer-content {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .footer-main .ant-space-item {
+    font-size: var(--font-size-xs);
+  }
+  
+  .footer-links .ant-space-item {
+    font-size: var(--font-size-xs);
+  }
+}
+
+/* 暗色主题适配 */
+[data-theme="dark"] .app-footer {
+  background: var(--color-background-secondary);
+  border-top-color: var(--color-border-primary);
+}

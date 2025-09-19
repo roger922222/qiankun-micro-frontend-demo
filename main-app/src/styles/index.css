@@ -1,0 +1,134 @@
+/**
+ * 主应用样式文件
+ * 导入共享样式和应用特定样式
+ */
+
+/* 导入共享样式 */
+@import '@shared/styles/index.css';
+
+/* 主应用特定样式 */
+.app-layout {
+  min-height: 100vh;
+}
+
+.app-content-layout {
+  background: var(--color-background-secondary);
+}
+
+.app-content {
+  margin: 0;
+  padding: 0;
+  background: var(--color-background-secondary);
+  min-height: calc(100vh - 64px - 70px);
+  overflow: auto;
+}
+
+.loading-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 400px;
+  background: var(--color-background-primary);
+}
+
+/* NProgress样式覆盖 */
+#nprogress .bar {
+  background: var(--color-primary) !important;
+  height: 3px !important;
+}
+
+#nprogress .peg {
+  box-shadow: 0 0 10px var(--color-primary), 0 0 5px var(--color-primary) !important;
+}
+
+#nprogress .spinner-icon {
+  border-top-color: var(--color-primary) !important;
+  border-left-color: var(--color-primary) !important;
+}
+
+/* Ant Design组件样式覆盖 */
+.ant-layout-header {
+  padding: 0;
+  height: 64px;
+  line-height: 64px;
+}
+
+.ant-layout-sider {
+  background: var(--color-background-primary);
+}
+
+.ant-layout-footer {
+  padding: 16px 24px;
+}
+
+.ant-menu {
+  background: transparent;
+}
+
+.ant-menu-item-selected {
+  background-color: var(--color-primary-light) !important;
+}
+
+.ant-menu-item-selected .ant-menu-item-icon,
+.ant-menu-item-selected span {
+  color: var(--color-primary) !important;
+}
+
+/* 响应式布局 */
+@media (max-width: 768px) {
+  .app-content {
+    min-height: calc(100vh - 64px - 60px);
+  }
+  
+  .loading-container {
+    height: 200px;
+  }
+}
+
+/* 暗色主题适配 */
+[data-theme="dark"] .app-content-layout {
+  background: var(--color-background-secondary);
+}
+
+[data-theme="dark"] .app-content {
+  background: var(--color-background-secondary);
+}
+
+[data-theme="dark"] .loading-container {
+  background: var(--color-background-primary);
+}
+
+/* 自定义滚动条 */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-fill-secondary);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border-primary);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-tertiary);
+}
+
+/* 打印样式 */
+@media print {
+  .app-layout .ant-layout-header,
+  .app-layout .ant-layout-sider,
+  .app-layout .ant-layout-footer {
+    display: none !important;
+  }
+  
+  .app-content {
+    margin: 0 !important;
+    padding: 0 !important;
+    min-height: auto !important;
+  }
+}
