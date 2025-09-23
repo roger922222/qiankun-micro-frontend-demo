@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Qiankun + Vite 集成测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .status-item {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        .warning { background-color: #fff3cd; color: #856404; }
+        .info { background-color: #d1ecf1; color: #0c5460; }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #micro-app-container {
+            min-height: 400px;
+            border: 2px dashed #ccc;
+            margin: 20px 0;
+            padding: 20px;
+            text-align: center;
+            background-color: #fafafa;
+        }
+        .log-area {
+            background-color: #f8f9fa;
+            border: 1px solid #e9ecef;
+            padding: 10px;
+            border-radius: 4px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Qiankun + Vite 集成测试页面</h1>
+        
+        <div class="test-section">
+            <h2>服务状态检查</h2>
+            <div id="service-status">
+                <div id="main-app-status" class="status-item info">检查主应用状态...</div>
+                <div id="sub-app-status" class="status-item info">检查子应用状态...</div>
+            </div>
+            <button onclick="checkServices()">重新检查服务</button>
+        </div>
+
+        <div class="test-section">
+            <h2>微应用加载测试</h2>
+            <div id="qiankun-status" class="status-item info">准备加载 qiankun...</div>
+            <button onclick="loadQiankun()">加载Qiankun</button>
+            <button onclick="loadMicroApp()">加载子应用</button>
+            <button onclick="clearContainer()">清空容器</button>
+        </div>
+
+        <div class="test-section">
+            <h2>微应用容器</h2>
+            <div id="micro-app-container">
+                <p>微应用将在这里加载...</p>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>日志输出</h2>
+            <div id="log-area" class="log-area"></div>
+            <button onclick="clearLogs()">清空日志</button>
+        </div>
+    </div>
+
+    <script>
+        // 日志函数
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logArea = document.getElementById('log-area');
+            const logEntry = document.createElement('div');
+            logEntry.innerHTML = `[${timestamp}] [${type.toUpperCase()}] ${message}`;
+            logArea.appendChild(logEntry);
+            logArea.scrollTop = logArea.scrollHeight;
+            console.log(`[${type.toUpperCase()}] ${message}`);
+        }
+
+        function clearLogs() {
+            document.getElementById('log-area').innerHTML = '';
+        }
+
+        function clearContainer() {
+            document.getElementById('micro-app-container').innerHTML = '<p>微应用容器已清空</p>';
+            log('微应用容器已清空');
+        }
+
+        // 检查服务状态
+        async function checkServices() {
+            log('开始检查服务状态...');
+            
+            // 检查主应用
+            try {
+                const mainResponse = await fetch('http://localhost:3000/', { 
+                    method: 'HEAD',
+                    mode: 'no-cors'
+                });
+                document.getElementById('main-app-status').className = 'status-item success';
+                document.getElementById('main-app-status').textContent = '✓ 主应用 (http://localhost:3000) 运行正常';
+                log('主应用服务正常', 'success');
+            } catch (error) {
+                document.getElementById('main-app-status').className = 'status-item error';
+                document.getElementById('main-app-status').textContent = '✗ 主应用 (http://localhost:3000) 无法访问';
+                log(`主应用服务异常: ${error.message}`, 'error');
+            }
+
+            // 检查子应用
+            try {
+                const subResponse = await fetch('http://localhost:3001/', { 
+                    method: 'HEAD',
+                    mode: 'no-cors'
+                });
+                document.getElementById('sub-app-status').className = 'status-item success';
+                document.getElementById('sub-app-status').textContent = '✓ 子应用 (http://localhost:3001) 运行正常';
+                log('子应用服务正常', 'success');
+            } catch (error) {
+                document.getElementById('sub-app-status').className = 'status-item error';
+                document.getElementById('sub-app-status').textContent = '✗ 子应用 (http://localhost:3001) 无法访问';
+                log(`子应用服务异常: ${error.message}`, 'error');
+            }
+        }
+
+        // 加载 qiankun
+        async function loadQiankun() {
+            log('开始加载 qiankun...');
+            
+            try {
+                // 动态加载 qiankun
+                const script = document.createElement('script');
+                script.src = 'https://unpkg.com/qiankun@2.10.16/lib/umd/qiankun.min.js';
+                script.onload = () => {
+                    log('qiankun 加载成功', 'success');
+                    document.getElementById('qiankun-status').className = 'status-item success';
+                    document.getElementById('qiankun-status').textContent = '✓ qiankun 已加载';
+                    setupQiankun();
+                };
+                script.onerror = () => {
+                    log('qiankun 加载失败', 'error');
+                    document.getElementById('qiankun-status').className = 'status-item error';
+                    document.getElementById('qiankun-status').textContent = '✗ qiankun 加载失败';
+                };
+                document.head.appendChild(script);
+            } catch (error) {
+                log(`加载 qiankun 时发生错误: ${error.message}`, 'error');
+            }
+        }
+
+        // 设置 qiankun
+        function setupQiankun() {
+            log('配置 qiankun...');
+            
+            if (!window.qiankun) {
+                log('qiankun 未找到', 'error');
+                return;
+            }
+
+            // 注册微应用
+            window.qiankun.registerMicroApps([
+                {
+                    name: 'react-user-management',
+                    entry: 'http://localhost:3001/',
+                    container: '#micro-app-container',
+                    activeRule: () => true, // 总是激活，用于测试
+                }
+            ], {
+                beforeLoad: (app) => {
+                    log(`准备加载应用: ${app.name}`);
+                    return Promise.resolve();
+                },
+                beforeMount: (app) => {
+                    log(`准备挂载应用: ${app.name}`);
+                    return Promise.resolve();
+                },
+                afterMount: (app) => {
+                    log(`应用挂载成功: ${app.name}`, 'success');
+                    return Promise.resolve();
+                },
+                beforeUnmount: (app) => {
+                    log(`准备卸载应用: ${app.name}`);
+                    return Promise.resolve();
+                },
+                afterUnmount: (app) => {
+                    log(`应用卸载成功: ${app.name}`);
+                    return Promise.resolve();
+                },
+            });
+
+            // 启动 qiankun
+            window.qiankun.start({
+                prefetch: false,
+                sandbox: {
+                    experimentalStyleIsolation: true,
+                },
+            });
+
+            log('qiankun 配置完成', 'success');
+        }
+
+        // 手动加载微应用
+        async function loadMicroApp() {
+            log('手动加载微应用...');
+            
+            if (!window.qiankun) {
+                log('请先加载 qiankun', 'warning');
+                return;
+            }
+
+            try {
+                const app = await window.qiankun.loadMicroApp({
+                    name: 'react-user-management',
+                    entry: 'http://localhost:3001/',
+                    container: '#micro-app-container',
+                });
+                
+                log('微应用加载成功', 'success');
+            } catch (error) {
+                log(`微应用加载失败: ${error.message}`, 'error');
+                console.error('详细错误信息:', error);
+            }
+        }
+
+        // 页面加载完成后自动检查服务
+        window.addEventListener('load', () => {
+            log('页面加载完成，开始自动检查服务状态');
+            checkServices();
+        });
+
+        // 监听错误
+        window.addEventListener('error', (event) => {
+            log(`全局错误: ${event.error?.message || event.message}`, 'error');
+        });
+
+        // 监听未处理的 Promise 拒绝
+        window.addEventListener('unhandledrejection', (event) => {
+            log(`未处理的 Promise 拒绝: ${event.reason}`, 'error');
+        });
+    </script>
+</body>
+</html>

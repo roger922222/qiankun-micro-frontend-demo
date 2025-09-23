@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Qiankun + Vite ES 模块修复测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        #subapp-container {
+            border: 2px solid #007bff;
+            padding: 20px;
+            margin: 20px 0;
+            min-height: 200px;
+        }
+    </style>
+    <script src="https://unpkg.com/qiankun@2.10.16/dist/index.umd.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Qiankun + Vite ES 模块修复测试</h1>
+        
+        <div class="status info">
+            <strong>修复说明：</strong>
+            <ul>
+                <li>✅ 清理了3001端口占用</li>
+                <li>✅ 将构建格式从UMD改为System格式</li>
+                <li>✅ 移除了全局生命周期函数挂载逻辑</li>
+                <li>✅ 保持标准的export导出格式</li>
+                <li>✅ 修复了TypeScript错误</li>
+            </ul>
+        </div>
+
+        <div id="loading-status" class="status info">
+            正在测试子应用加载...
+        </div>
+
+        <div id="subapp-container">
+            <!-- 子应用将在这里渲染 -->
+        </div>
+
+        <div id="logs">
+            <h3>加载日志：</h3>
+            <div id="log-content"></div>
+        </div>
+    </div>
+
+    <script>
+        const { registerMicroApps, start } = window.qiankun;
+        
+        function addLog(message, type = 'info') {
+            const logContent = document.getElementById('log-content');
+            const logItem = document.createElement('div');
+            logItem.className = `status ${type}`;
+            logItem.innerHTML = `<strong>${new Date().toLocaleTimeString()}:</strong> ${message}`;
+            logContent.appendChild(logItem);
+        }
+
+        // 注册微应用
+        registerMicroApps([
+            {
+                name: 'react-user-management',
+                entry: 'http://localhost:3001',
+                container: '#subapp-container',
+                activeRule: () => true, // 总是激活
+            }
+        ], {
+            beforeLoad: [
+                app => {
+                    addLog(`开始加载应用: ${app.name}`, 'info');
+                    return Promise.resolve();
+                }
+            ],
+            beforeMount: [
+                app => {
+                    addLog(`开始挂载应用: ${app.name}`, 'info');
+                    return Promise.resolve();
+                }
+            ],
+            afterMount: [
+                app => {
+                    addLog(`应用挂载成功: ${app.name}`, 'success');
+                    document.getElementById('loading-status').className = 'status success';
+                    document.getElementById('loading-status').innerHTML = '✅ 子应用加载成功！ES模块错误已修复！';
+                    return Promise.resolve();
+                }
+            ],
+            beforeUnmount: [
+                app => {
+                    addLog(`开始卸载应用: ${app.name}`, 'info');
+                    return Promise.resolve();
+                }
+            ],
+            afterUnmount: [
+                app => {
+                    addLog(`应用卸载成功: ${app.name}`, 'info');
+                    return Promise.resolve();
+                }
+            ]
+        });
+
+        // 启动qiankun
+        start({
+            prefetch: false,
+            fetch: window.fetch,
+            getPublicPath: (entry) => entry,
+            getTemplate: (tpl) => tpl
+        });
+
+        // 错误监听
+        window.addEventListener('error', (event) => {
+            if (event.message.includes('import statement outside a module')) {
+                addLog(`❌ ES模块错误仍然存在: ${event.message}`, 'error');
+                document.getElementById('loading-status').className = 'status error';
+                document.getElementById('loading-status').innerHTML = '❌ ES模块错误仍然存在，需要进一步修复';
+            } else {
+                addLog(`其他错误: ${event.message}`, 'error');
+            }
+        });
+
+        // 监听qiankun的全局错误
+        window.addEventListener('unhandledrejection', (event) => {
+            if (event.reason && event.reason.message) {
+                if (event.reason.message.includes('import statement outside a module')) {
+                    addLog(`❌ ES模块错误: ${event.reason.message}`, 'error');
+                    document.getElementById('loading-status').className = 'status error';
+                    document.getElementById('loading-status').innerHTML = '❌ ES模块错误仍然存在，需要进一步修复';
+                } else {
+                    addLog(`Promise错误: ${event.reason.message}`, 'error');
+                }
+            }
+        });
+
+        addLog('Qiankun主应用已启动，等待子应用响应...', 'info');
+    </script>
+</body>
+</html>

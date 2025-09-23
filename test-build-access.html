@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>测试构建产物访问</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .success { border-color: #52c41a; background-color: #f6ffed; }
+        .error { border-color: #ff4d4f; background-color: #fff2f0; }
+        .loading { border-color: #1890ff; background-color: #f0f9ff; }
+        pre {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 3px;
+            overflow-x: auto;
+            max-height: 300px;
+        }
+        button {
+            background: #1890ff;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #40a9ff;
+        }
+        .container-test {
+            width: 100%;
+            height: 200px;
+            border: 2px dashed #d9d9d9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>qiankun 微前端构建产物访问测试</h1>
+    
+    <div class="test-section">
+        <h3>1. 网络请求测试</h3>
+        <button onclick="testNetworkAccess()">测试网络访问</button>
+        <button onclick="testJSFileAccess()">测试JS文件访问</button>
+        <button onclick="testHTMLAccess()">测试HTML访问</button>
+        <div id="network-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>2. 生命周期函数检查</h3>
+        <button onclick="checkLifecycleFunctions()">检查生命周期函数</button>
+        <div id="lifecycle-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>3. 模拟 qiankun 加载</h3>
+        <button onclick="simulateQiankunLoad()">模拟加载</button>
+        <div id="qiankun-result"></div>
+        <div id="micro-app-container" class="container-test">
+            微应用容器 - 等待加载
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h3>4. SystemJS 模块测试</h3>
+        <button onclick="testSystemJSModule()">测试SystemJS模块</button>
+        <div id="systemjs-result"></div>
+    </div>
+
+    <script>
+        const BASE_URL = 'http://localhost:3001';
+        
+        function updateResult(elementId, content, className = '') {
+            const element = document.getElementById(elementId);
+            element.innerHTML = content;
+            element.className = `test-section ${className}`;
+        }
+
+        async function testNetworkAccess() {
+            updateResult('network-result', '正在测试网络访问...', 'loading');
+            
+            try {
+                const response = await fetch(`${BASE_URL}/`);
+                const text = await response.text();
+                
+                updateResult('network-result', `
+                    <strong>✅ 网络访问成功</strong><br>
+                    状态码: ${response.status}<br>
+                    内容类型: ${response.headers.get('content-type')}<br>
+                    内容长度: ${text.length} 字符<br>
+                    <details>
+                        <summary>响应内容预览</summary>
+                        <pre>${text.substring(0, 500)}${text.length > 500 ? '...' : ''}</pre>
+                    </details>
+                `, 'success');
+            } catch (error) {
+                updateResult('network-result', `
+                    <strong>❌ 网络访问失败</strong><br>
+                    错误: ${error.message}
+                `, 'error');
+            }
+        }
+
+        async function testJSFileAccess() {
+            updateResult('network-result', '正在测试JS文件访问...', 'loading');
+            
+            try {
+                const response = await fetch(`${BASE_URL}/react-user-management.js`);
+                const text = await response.text();
+                
+                // 检查是否包含生命周期函数
+                const hasBootstrap = text.includes('bootstrap');
+                const hasMount = text.includes('mount');
+                const hasUnmount = text.includes('unmount');
+                const hasWindowExports = text.includes('window.ReactUserManagement');
+                
+                updateResult('network-result', `
+                    <strong>✅ JS文件访问成功</strong><br>
+                    状态码: ${response.status}<br>
+                    文件大小: ${(text.length / 1024).toFixed(2)} KB<br>
+                    包含 bootstrap: ${hasBootstrap ? '✅' : '❌'}<br>
+                    包含 mount: ${hasMount ? '✅' : '❌'}<br>
+                    包含 unmount: ${hasUnmount ? '✅' : '❌'}<br>
+                    包含 window.ReactUserManagement: ${hasWindowExports ? '✅' : '❌'}<br>
+                    <details>
+                        <summary>文件内容预览（末尾1000字符）</summary>
+                        <pre>${text.slice(-1000)}</pre>
+                    </details>
+                `, hasBootstrap && hasMount && hasUnmount && hasWindowExports ? 'success' : 'error');
+            } catch (error) {
+                updateResult('network-result', `
+                    <strong>❌ JS文件访问失败</strong><br>
+                    错误: ${error.message}
+                `, 'error');
+            }
+        }
+
+        async function testHTMLAccess() {
+            updateResult('network-result', '正在测试HTML访问...', 'loading');
+            
+            try {
+                const response = await fetch(`${BASE_URL}/`);
+                const html = await response.text();
+                
+                // 检查HTML内容
+                const hasScript = html.includes('react-user-management.js');
+                const hasRoot = html.includes('id="root"');
+                
+                updateResult('network-result', `
+                    <strong>✅ HTML访问成功</strong><br>
+                    状态码: ${response.status}<br>
+                    包含JS引用: ${hasScript ? '✅' : '❌'}<br>
+                    包含root元素: ${hasRoot ? '✅' : '❌'}<br>
+                    <details>
+                        <summary>HTML内容</summary>
+                        <pre>${html}</pre>
+                    </details>
+                `, hasScript && hasRoot ? 'success' : 'error');
+            } catch (error) {
+                updateResult('network-result', `
+                    <strong>❌ HTML访问失败</strong><br>
+                    错误: ${error.message}
+                `, 'error');
+            }
+        }
+
+        async function checkLifecycleFunctions() {
+            updateResult('lifecycle-result', '正在检查生命周期函数...', 'loading');
+            
+            try {
+                // 加载JS文件
+                const script = document.createElement('script');
+                script.src = `${BASE_URL}/react-user-management.js`;
+                
+                script.onload = () => {
+                    setTimeout(() => {
+                        const hasReactUserManagement = !!window.ReactUserManagement;
+                        const hasBootstrap = hasReactUserManagement && typeof window.ReactUserManagement.bootstrap === 'function';
+                        const hasMount = hasReactUserManagement && typeof window.ReactUserManagement.mount === 'function';
+                        const hasUnmount = hasReactUserManagement && typeof window.ReactUserManagement.unmount === 'function';
+                        
+                        updateResult('lifecycle-result', `
+                            <strong>${hasReactUserManagement ? '✅' : '❌'} 生命周期函数检查</strong><br>
+                            window.ReactUserManagement 存在: ${hasReactUserManagement ? '✅' : '❌'}<br>
+                            bootstrap 函数: ${hasBootstrap ? '✅' : '❌'}<br>
+                            mount 函数: ${hasMount ? '✅' : '❌'}<br>
+                            unmount 函数: ${hasUnmount ? '✅' : '❌'}<br>
+                            <details>
+                                <summary>详细信息</summary>
+                                <pre>${JSON.stringify({
+                                    ReactUserManagement: !!window.ReactUserManagement,
+                                    functions: window.ReactUserManagement ? Object.keys(window.ReactUserManagement) : [],
+                                    types: window.ReactUserManagement ? Object.keys(window.ReactUserManagement).map(key => 
+                                        `${key}: ${typeof window.ReactUserManagement[key]}`
+                                    ) : []
+                                }, null, 2)}</pre>
+                            </details>
+                        `, hasReactUserManagement && hasBootstrap && hasMount && hasUnmount ? 'success' : 'error');
+                    }, 1000);
+                };
+                
+                script.onerror = (error) => {
+                    updateResult('lifecycle-result', `
+                        <strong>❌ 脚本加载失败</strong><br>
+                        错误: ${error}
+                    `, 'error');
+                };
+                
+                document.head.appendChild(script);
+            } catch (error) {
+                updateResult('lifecycle-result', `
+                    <strong>❌ 检查失败</strong><br>
+                    错误: ${error.message}
+                `, 'error');
+            }
+        }
+
+        async function simulateQiankunLoad() {
+            updateResult('qiankun-result', '正在模拟qiankun加载...', 'loading');
+            
+            try {
+                if (!window.ReactUserManagement) {
+                    throw new Error('ReactUserManagement 未找到，请先运行生命周期函数检查');
+                }
+                
+                const container = document.getElementById('micro-app-container');
+                
+                // 模拟qiankun的mount过程
+                console.log('开始bootstrap...');
+                await window.ReactUserManagement.bootstrap();
+                
+                console.log('开始mount...');
+                await window.ReactUserManagement.mount({
+                    container: container,
+                    routerBase: '/user-management'
+                });
+                
+                updateResult('qiankun-result', `
+                    <strong>✅ 模拟加载成功</strong><br>
+                    bootstrap: 完成<br>
+                    mount: 完成<br>
+                    容器状态: 已挂载应用
+                `, 'success');
+                
+            } catch (error) {
+                updateResult('qiankun-result', `
+                    <strong>❌ 模拟加载失败</strong><br>
+                    错误: ${error.message}<br>
+                    堆栈: <pre>${error.stack}</pre>
+                `, 'error');
+            }
+        }
+
+        async function testSystemJSModule() {
+            updateResult('systemjs-result', '正在测试SystemJS模块...', 'loading');
+            
+            try {
+                // 检查是否为SystemJS格式
+                const response = await fetch(`${BASE_URL}/react-user-management.js`);
+                const content = await response.text();
+                
+                const isSystemJS = content.includes('System.register') || content.includes('__SYSTEM_CONTEXT__');
+                const hasModuleExports = content.includes('exports') && content.includes('module');
+                const hasWindowExports = content.includes('window.ReactUserManagement');
+                
+                updateResult('systemjs-result', `
+                    <strong>SystemJS 模块格式检查</strong><br>
+                    SystemJS 格式: ${isSystemJS ? '✅' : '❌'}<br>
+                    模块导出: ${hasModuleExports ? '✅' : '❌'}<br>
+                    Window 导出: ${hasWindowExports ? '✅' : '❌'}<br>
+                    文件大小: ${(content.length / 1024).toFixed(2)} KB<br>
+                    <details>
+                        <summary>模块格式分析</summary>
+                        <pre>SystemJS 格式: ${isSystemJS}
+模块导出: ${hasModuleExports}
+Window 导出: ${hasWindowExports}
+包含 System.register: ${content.includes('System.register')}
+包含 __SYSTEM_CONTEXT__: ${content.includes('__SYSTEM_CONTEXT__')}
+包含 exports: ${content.includes('exports')}
+包含 module: ${content.includes('module')}</pre>
+                    </details>
+                `, 'success');
+                
+            } catch (error) {
+                updateResult('systemjs-result', `
+                    <strong>❌ SystemJS测试失败</strong><br>
+                    错误: ${error.message}
+                `, 'error');
+            }
+        }
+
+        // 页面加载时自动运行基础测试
+        window.addEventListener('load', () => {
+            console.log('页面加载完成，开始自动测试...');
+            setTimeout(testNetworkAccess, 500);
+        });
+    </script>
+</body>
+</html>

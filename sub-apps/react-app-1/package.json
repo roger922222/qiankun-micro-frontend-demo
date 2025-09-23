@@ -5,58 +5,41 @@
   "private": true,
   "scripts": {
     "dev": "vite --port 3001",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:all": "concurrently \"npm run dev\" \"npm run dev:backend\"",
     "build": "tsc && vite build",
-    "preview": "vite preview",
+    "build:backend": "cd backend && npm run build",
+    "preview": "vite preview --port 3001",
     "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "lint:fix": "eslint src --ext ts,tsx --fix",
+    "lint:backend": "cd backend && npm run lint",
     "type-check": "tsc --noEmit",
-    "test": "vitest",
-    "test:coverage": "vitest --coverage"
+    "type-check:backend": "cd backend && npm run type-check",
+    "install:all": "npm install && cd backend && npm install"
   },
   "dependencies": {
+    "@ant-design/cssinjs": "^1.18.4",
     "@ant-design/icons": "^5.0.1",
     "@reduxjs/toolkit": "^1.9.3",
-    "antd": "^5.2.1",
-    "axios": "^1.3.4",
-    "classnames": "^2.3.2",
-    "dayjs": "^1.11.7",
-    "lodash": "^4.17.21",
+    "antd": "^5.27.4",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-error-boundary": "^4.0.11",
-    "react-helmet-async": "^1.3.0",
     "react-redux": "^8.0.5",
-    "react-router-dom": "^6.8.1",
-    "styled-components": "^5.3.6",
-    "vite-plugin-qiankun": "^1.0.15"
+    "react-router-dom": "^6.8.1"
   },
   "devDependencies": {
-    "@testing-library/jest-dom": "^5.16.5",
-    "@testing-library/react": "^14.0.0",
-    "@testing-library/user-event": "^14.4.3",
-    "@types/lodash": "^4.14.191",
     "@types/react": "^18.0.28",
     "@types/react-dom": "^18.0.11",
     "@typescript-eslint/eslint-plugin": "^5.54.0",
     "@typescript-eslint/parser": "^5.54.0",
     "@vitejs/plugin-react": "^3.1.0",
+    "@vitejs/plugin-legacy": "^4.1.1",
+    "vite-plugin-legacy-qiankun": "^0.0.12",
     "eslint": "^8.35.0",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.3.4",
     "typescript": "^4.9.3",
     "vite": "^4.1.0",
-    "vitest": "^0.28.5"
-  },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
+    "concurrently": "^7.6.0"
   }
 }

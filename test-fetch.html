@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>测试子应用连接</title>
+</head>
+<body>
+    <h1>测试子应用连接</h1>
+    <div id="result"></div>
+    
+    <script>
+        const testUrls = [
+            'http://localhost:3001/',
+            'http://localhost:3001/src/main.tsx',
+            'http://127.0.0.1:3001/',
+        ];
+        
+        const resultDiv = document.getElementById('result');
+        
+        async function testFetch(url) {
+            try {
+                console.log(`Testing: ${url}`);
+                const response = await fetch(url, {
+                    method: 'GET',
+                    mode: 'cors'
+                });
+                
+                const result = `✅ ${url} - Status: ${response.status} ${response.statusText}`;
+                console.log(result);
+                resultDiv.innerHTML += `<p>${result}</p>`;
+                
+                if (url.endsWith('.tsx')) {
+                    const text = await response.text();
+                    console.log('Content preview:', text.substring(0, 200));
+                }
+                
+            } catch (error) {
+                const result = `❌ ${url} - Error: ${error.message}`;
+                console.error(result, error);
+                resultDiv.innerHTML += `<p style="color: red;">${result}</p>`;
+            }
+        }
+        
+        async function runTests() {
+            resultDiv.innerHTML = '<h2>测试结果:</h2>';
+            
+            for (const url of testUrls) {
+                await testFetch(url);
+                await new Promise(resolve => setTimeout(resolve, 1000));
+            }
+        }
+        
+        runTests();
+    </script>
+</body>
+</html>

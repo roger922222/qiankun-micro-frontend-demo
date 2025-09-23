@@ -266,5 +266,5 @@ server {
 ## 联系方式
 
 - 作者: 罗杰
-- 邮箱: luojie.rt@example.com
+- 邮箱: m16675184976@163.com
 - 项目链接: [https://github.com/your-username/qiankun-micro-frontend-demo](https://github.com/your-username/qiankun-micro-frontend-demo)

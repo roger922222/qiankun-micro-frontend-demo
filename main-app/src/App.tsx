@@ -12,7 +12,7 @@ import { Helmet } from 'react-helmet-async';
 import AppHeader from './components/Layout/AppHeader';
 import AppSidebar from './components/Layout/AppSidebar';
 import AppFooter from './components/Layout/AppFooter';
-import MicroAppContainer from './components/MicroApp/MicroAppContainer';
+import SimpleMicroAppContainer from './components/MicroApp/SimpleMicroAppContainer';
 import Dashboard from './pages/Dashboard';
 import NotFound from './pages/NotFound';
 
@@ -20,8 +20,6 @@ import NotFound from './pages/NotFound';
 import { useGlobalState } from './hooks/useGlobalState';
 import { useMicroApps } from './hooks/useMicroApps';
 import { globalLogger } from '@shared/utils/logger';
-
-// 导入微前端配置
 import { setupMicroApps } from './micro-apps/setup';
 
 // 导入样式
@@ -35,10 +33,32 @@ const { Content } = Layout;
 const App: React.FC = () => {
   const location = useLocation();
   const { state, dispatch } = useGlobalState();
-  // const { microApps, loading: microAppsLoading } = useMicroApps();
-  const [qiankunInitialized, setQiankunInitialized] = useState(false);
-  const [microApps, setMicroApps] = useState<any[]>([]);
+  const { microApps, loading: microAppsLoading } = useMicroApps();
   const [collapsed, setCollapsed] = useState(false);
+  const [qiankunInitialized, setQiankunInitialized] = useState(false);
+
+  // 初始化微前端应用（延迟执行，确保容器元素已渲染）
+  useEffect(() => {
+    const initializeQiankun = async () => {
+      try {
+        globalLogger.info('Initializing qiankun micro apps...');
+        
+        // 等待更长时间确保所有React组件都已渲染
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        await setupMicroApps();
+        setQiankunInitialized(true);
+        globalLogger.info('Qiankun micro apps initialized successfully');
+      } catch (error) {
+        globalLogger.error('Failed to initialize qiankun micro apps', error as Error);
+      }
+    };
+
+    // 延迟初始化，确保DOM已渲染
+    const timer = setTimeout(initializeQiankun, 500);
+    
+    return () => clearTimeout(timer);
+  }, []);
 
   // 监听路由变化
   useEffect(() => {
@@ -62,49 +82,6 @@ const App: React.FC = () => {
     });
   }, [location, dispatch]);
 
-  // 初始化qiankun - 确保在组件渲染完成后
-  useEffect(() => {
-    const initializeQiankun = async () => {
-      if (!qiankunInitialized) {
-        try {
-          globalLogger.info(`Initializing qiankun after App component mounted`)
-          // await setupMicroApps()
-
-          // 获取微应用列表
-          const configs = await import('./micro-apps/setup').then(module => module.getMicroAppConfigs());
-          setMicroApps(configs)
-          // setQiankunInitialized(true)
-
-          // 预创建所有微应用容器
-          configs.forEach(config => {
-            const containerId = config.container.replace('#', '');
-            let container = document.getElementById(containerId);
-            if (!container) {
-              container = document.createElement('div');
-              container.id = containerId;
-              container.style.display = 'none'; // 隐藏
-              document.body.appendChild(container);
-              globalLogger.info(`Pre-created container: ${containerId}`)
-            }
-          })
-
-          // 延迟初始化qiankun,确保容器创建成功
-          setTimeout(async () => {
-            await setupMicroApps()
-            setQiankunInitialized(true);
-            globalLogger.info(`Qiankun initialized successfully`);
-          }, 200)
-
-        } catch (err) {
-          globalLogger.error(`Failed to initialize qiankun`, err as Error)
-        }
-      }
-    }
-    // 延迟执行, 确保DOM完全渲染
-    const timer = setTimeout(initializeQiankun, 100)
-    return () => clearInterval(timer)
-  }, [qiankunInitialized])
-
   // 获取当前激活的微应用
   const getActiveMicroApp = (pathname: string) => {
     return microApps.find(app => pathname.startsWith(app.activeRule as string));
@@ -119,10 +96,10 @@ const App: React.FC = () => {
 
   // 渲染页面内容
   const renderContent = () => {
-    if (!qiankunInitialized) {
+    if (microAppsLoading || !qiankunInitialized) {
       return (
         <div className="loading-container">
-          <Spin size="large" tip="正在初始化微前端框架..." />
+          <Spin size="large" tip="正在加载微应用..." />
         </div>
       );
     }
@@ -139,11 +116,9 @@ const App: React.FC = () => {
             key={app.name}
             path={`${app.activeRule}/*`}
             element={
-              <MicroAppContainer
+              <SimpleMicroAppContainer
                 appName={app.name}
-                entry={app.entry}
                 container={`#micro-app-${app.name}`}
-                activeRule={app.activeRule as string}
               />
             }
           />

@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Qiankun 子应用测试</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 20px; 
+            background: #f5f5f5;
+        }
+        .container { 
+            border: 2px solid #1890ff; 
+            padding: 20px; 
+            margin: 20px 0; 
+            min-height: 200px; 
+            background: white;
+            border-radius: 8px;
+        }
+        .log { 
+            background: #f0f0f0; 
+            padding: 10px; 
+            margin: 10px 0; 
+            font-family: monospace; 
+            border-radius: 4px;
+        }
+        .error { color: #ff4d4f; }
+        .success { color: #52c41a; }
+        .info { color: #1890ff; }
+        .warning { color: #faad14; }
+        .controls {
+            margin: 20px 0;
+        }
+        button {
+            margin-right: 10px;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            background: #1890ff;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #40a9ff;
+        }
+        button:disabled {
+            background: #d9d9d9;
+            cursor: not-allowed;
+        }
+        .status {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+        .status.loading { background: #faad14; color: white; }
+        .status.success { background: #52c41a; color: white; }
+        .status.error { background: #ff4d4f; color: white; }
+    </style>
+</head>
+<body>
+    <h1>🚀 Qiankun 微前端子应用测试</h1>
+    <p>测试 react-app-1 用户管理系统在 qiankun 框架下的集成</p>
+    
+    <div class="controls">
+        <button id="loadBtn" onclick="loadMicroApp()">📦 加载子应用</button>
+        <button id="unloadBtn" onclick="unloadMicroApp()" disabled>🗑️ 卸载子应用</button>
+        <button onclick="clearLog()">🧹 清除日志</button>
+        <span id="status" class="status" style="display: none;"></span>
+    </div>
+    
+    <h3>📋 运行日志：</h3>
+    <div id="log-container"></div>
+    
+    <h3>🔧 子应用容器：</h3>
+    <div id="micro-app-react-user-management" class="container">
+        <p style="color: #999; text-align: center; margin-top: 80px;">
+            子应用未加载，点击上方按钮开始测试
+        </p>
+    </div>
+    
+    <script src="https://unpkg.com/qiankun@2.10.16/dist/index.js"></script>
+    <script>
+        const logContainer = document.getElementById('log-container');
+        const loadBtn = document.getElementById('loadBtn');
+        const unloadBtn = document.getElementById('unloadBtn');
+        const statusEl = document.getElementById('status');
+        
+        let microApp = null;
+        let isLoading = false;
+        
+        function log(message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = 'log ' + type;
+            const timestamp = new Date().toLocaleTimeString();
+            div.innerHTML = `<strong>[${timestamp}]</strong> ${message}`;
+            logContainer.appendChild(div);
+            
+            // 自动滚动到底部
+            div.scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        function setStatus(text, type) {
+            statusEl.textContent = text;
+            statusEl.className = 'status ' + type;
+            statusEl.style.display = 'inline-block';
+        }
+        
+        function clearStatus() {
+            statusEl.style.display = 'none';
+        }
+        
+        function updateButtons(loading = false, loaded = false) {
+            loadBtn.disabled = loading || loaded;
+            unloadBtn.disabled = loading || !loaded;
+            isLoading = loading;
+        }
+        
+        function clearLog() {
+            logContainer.innerHTML = '';
+            clearStatus();
+            log('🧹 日志已清除', 'info');
+        }
+        
+        async function loadMicroApp() {
+            if (isLoading) return;
+            
+            clearLog();
+            updateButtons(true, false);
+            setStatus('加载中...', 'loading');
+            
+            log('🚀 开始加载 react-app-1 子应用...', 'info');
+            
+            try {
+                // 检查子应用是否可访问
+                log('🔗 检查子应用入口地址...', 'info');
+                const response = await fetch('http://localhost:3001/', { method: 'HEAD' });
+                if (!response.ok) {
+                    throw new Error(`子应用返回状态码: ${response.status}`);
+                }
+                log('✅ 子应用入口地址可访问', 'success');
+                
+                // 注册微应用
+                log('📋 注册微应用...', 'info');
+                qiankun.registerMicroApps([
+                    {
+                        name: 'react-user-management',
+                        entry: 'http://localhost:3001/',
+                        container: '#micro-app-react-user-management',
+                        activeRule: '/user-management',
+                        props: {
+                            routerBase: '/user-management',
+                            getGlobalState: () => ({ test: 'global state' }),
+                            setGlobalState: (state) => console.log('设置全局状态:', state),
+                            eventBus: { emit: (event) => console.log('事件:', event) }
+                        }
+                    }
+                ]);
+                log('✅ 微应用注册成功', 'success');
+                
+                // 启动 qiankun
+                log('🚀 启动 qiankun 框架...', 'info');
+                qiankun.start({
+                    sandbox: {
+                        strictStyleIsolation: false,
+                        experimentalStyleIsolation: true
+                    },
+                    singular: false
+                });
+                log('✅ qiankun 框架启动成功', 'success');
+                
+                // 手动加载子应用
+                log('📦 正在加载子应用...', 'info');
+                microApp = qiankun.loadMicroApp({
+                    name: 'react-user-management',
+                    entry: 'http://localhost:3001/',
+                    container: '#micro-app-react-user-management',
+                    props: {
+                        routerBase: '/user-management',
+                        testProp: 'Hello from main app'
+                    }
+                });
+                
+                // 等待挂载完成
+                await microApp.mountPromise;
+                log('🎉 子应用挂载成功！', 'success');
+                setStatus('已加载', 'success');
+                updateButtons(false, true);
+                
+            } catch (error) {
+                log('❌ 加载失败: ' + error.message, 'error');
+                console.error('详细错误:', error);
+                setStatus('加载失败', 'error');
+                updateButtons(false, false);
+                
+                // 显示错误信息在容器中
+                const container = document.getElementById('micro-app-react-user-management');
+                if (container) {
+                    container.innerHTML = `
+                        <div style="text-align: center; padding: 40px; color: #ff4d4f;">
+                            <h3>❌ 子应用加载失败</h3>
+                            <p>${error.message}</p>
+                            <p style="font-size: 12px; color: #999;">
+                                请确保子应用服务正在运行: <code>npm run start</code>
+                            </p>
+                        </div>
+                    `;
+                }
+            }
+        }
+        
+        async function unloadMicroApp() {
+            if (isLoading || !microApp) return;
+            
+            log('🗑️ 开始卸载子应用...', 'info');
+            updateButtons(true, true);
+            setStatus('卸载中...', 'loading');
+            
+            try {
+                await microApp.unmount();
+                log('✅ 子应用卸载成功', 'success');
+                setStatus('已卸载', 'info');
+                
+                // 重置容器内容
+                const container = document.getElementById('micro-app-react-user-management');
+                if (container) {
+                    container.innerHTML = `
+                        <p style="color: #999; text-align: center; margin-top: 80px;">
+                            子应用已卸载，点击上方按钮重新加载
+                        </p>
+                    `;
+                }
+                
+                microApp = null;
+                updateButtons(false, false);
+                clearStatus();
+                
+            } catch (error) {
+                log('❌ 卸载失败: ' + error.message, 'error');
+                console.error('卸载错误:', error);
+                setStatus('卸载失败', 'error');
+                updateButtons(false, true);
+            }
+        }
+        
+        // 监听全局错误
+        window.addEventListener('error', (event) => {
+            log('🚨 全局错误: ' + event.error.message, 'error');
+            console.error('全局错误详情:', event.error);
+        });
+        
+        // 监听未处理的 Promise 拒绝
+        window.addEventListener('unhandledrejection', (event) => {
+            log('⚠️ 未处理的 Promise 拒绝: ' + event.reason, 'error');
+            console.error('Promise 拒绝详情:', event.reason);
+        });
+        
+        // 页面加载完成提示
+        log('📄 测试页面加载完成，点击按钮开始测试', 'info');
+        log('💡 提示：确保子应用服务正在运行（端口 3001）', 'warning');
+    </script>
+</body>
+</html>

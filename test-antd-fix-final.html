@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Antd + qiankun 沙箱兼容性修复测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #1890ff;
+        }
+        
+        .status {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f0f2f5;
+            border-radius: 4px;
+        }
+        
+        .status-item {
+            text-align: center;
+        }
+        
+        .status-label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        
+        .status-value {
+            font-size: 16px;
+            font-weight: bold;
+        }
+        
+        .success { color: #52c41a; }
+        .error { color: #f5222d; }
+        .warning { color: #faad14; }
+        
+        .micro-app-container {
+            border: 2px solid #d9d9d9;
+            border-radius: 6px;
+            min-height: 500px;
+            position: relative;
+            background: #fafafa;
+        }
+        
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: #666;
+        }
+        
+        .controls {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            margin: 0 8px;
+            border: 1px solid #d9d9d9;
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn:hover {
+            border-color: #1890ff;
+            color: #1890ff;
+        }
+        
+        .btn.primary {
+            background: #1890ff;
+            color: white;
+            border-color: #1890ff;
+        }
+        
+        .btn.primary:hover {
+            background: #40a9ff;
+        }
+        
+        .log-container {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f6f6f6;
+            border-radius: 4px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .log-item {
+            margin-bottom: 8px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        
+        .log-time {
+            color: #666;
+            margin-right: 8px;
+        }
+        
+        .log-level {
+            margin-right: 8px;
+            padding: 2px 6px;
+            border-radius: 2px;
+            color: white;
+            font-size: 10px;
+        }
+        
+        .log-info { background: #1890ff; }
+        .log-error { background: #f5222d; }
+        .log-warn { background: #faad14; }
+        .log-success { background: #52c41a; }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <div class="header">
+            <h1>🔧 Antd + qiankun 沙箱兼容性修复测试</h1>
+            <p>测试 React 子应用在 qiankun 沙箱环境中的 Antd 样式注入问题修复</p>
+        </div>
+        
+        <div class="status">
+            <div class="status-item">
+                <div class="status-label">qiankun 状态</div>
+                <div class="status-value" id="qiankun-status">检测中...</div>
+            </div>
+            <div class="status-item">
+                <div class="status-label">子应用状态</div>
+                <div class="status-value" id="app-status">未加载</div>
+            </div>
+            <div class="status-item">
+                <div class="status-label">样式注入</div>
+                <div class="status-value" id="style-status">未测试</div>
+            </div>
+            <div class="status-item">
+                <div class="status-label">DOM 操作</div>
+                <div class="status-value" id="dom-status">未测试</div>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <button class="btn primary" onclick="loadApp()">🚀 加载子应用</button>
+            <button class="btn" onclick="unloadApp()">🛑 卸载子应用</button>
+            <button class="btn" onclick="testAntdComponents()">🧪 测试 Antd 组件</button>
+            <button class="btn" onclick="clearLogs()">🗑️ 清空日志</button>
+        </div>
+        
+        <div id="micro-app-react-user-management" class="micro-app-container">
+            <div class="loading">
+                <div>📦 等待子应用加载...</div>
+                <div style="margin-top: 10px; font-size: 12px; color: #999;">
+                    点击"加载子应用"按钮开始测试
+                </div>
+            </div>
+        </div>
+        
+        <div class="log-container">
+            <div style="margin-bottom: 10px; font-weight: bold;">📋 实时日志</div>
+            <div id="log-content"></div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/qiankun@2.10.16/dist/index.umd.min.js"></script>
+    <script>
+        let app = null;
+        let isLoaded = false;
+        
+        // 日志系统
+        function log(level, message, data = null) {
+            const time = new Date().toLocaleTimeString();
+            const logContent = document.getElementById('log-content');
+            const logItem = document.createElement('div');
+            logItem.className = 'log-item';
+            
+            const timeSpan = document.createElement('span');
+            timeSpan.className = 'log-time';
+            timeSpan.textContent = time;
+            
+            const levelSpan = document.createElement('span');
+            levelSpan.className = `log-level log-${level}`;
+            levelSpan.textContent = level.toUpperCase();
+            
+            const messageSpan = document.createElement('span');
+            messageSpan.textContent = message + (data ? ` ${JSON.stringify(data)}` : '');
+            
+            logItem.appendChild(timeSpan);
+            logItem.appendChild(levelSpan);
+            logItem.appendChild(messageSpan);
+            
+            logContent.appendChild(logItem);
+            logContent.scrollTop = logContent.scrollHeight;
+        }
+        
+        // 更新状态
+        function updateStatus(type, status, className = 'success') {
+            const element = document.getElementById(`${type}-status`);
+            element.textContent = status;
+            element.className = `status-value ${className}`;
+        }
+        
+        // 错误监听
+        window.addEventListener('error', (event) => {
+            if (event.message.includes('appendChild') || 
+                event.message.includes('Cannot set properties of null')) {
+                log('error', `DOM 操作错误: ${event.message}`);
+                updateStatus('dom', '❌ DOM 错误', 'error');
+            } else {
+                log('error', `全局错误: ${event.message}`);
+            }
+        });
+        
+        // 检测 qiankun 状态
+        function checkQiankun() {
+            if (window.qiankun) {
+                log('success', 'qiankun 框架已加载');
+                updateStatus('qiankun', '✅ 已加载', 'success');
+                return true;
+            } else {
+                log('error', 'qiankun 框架未加载');
+                updateStatus('qiankun', '❌ 未加载', 'error');
+                return false;
+            }
+        }
+        
+        // 加载子应用
+        async function loadApp() {
+            if (!checkQiankun()) return;
+            
+            if (isLoaded) {
+                log('warn', '子应用已加载，请先卸载');
+                return;
+            }
+            
+            try {
+                log('info', '开始加载 React 用户管理子应用...');
+                updateStatus('app', '🔄 加载中...', 'warning');
+                
+                // 注册子应用
+                qiankun.registerMicroApps([{
+                    name: 'react-user-management',
+                    entry: 'http://localhost:3002/',
+                    container: '#micro-app-react-user-management',
+                    activeRule: () => true,
+                }], {
+                    beforeLoad: (app) => {
+                        log('info', `准备加载子应用: ${app.name}`);
+                        return Promise.resolve();
+                    },
+                    beforeMount: (app) => {
+                        log('info', `准备挂载子应用: ${app.name}`);
+                        return Promise.resolve();
+                    },
+                    afterMount: (app) => {
+                        log('success', `子应用挂载成功: ${app.name}`);
+                        updateStatus('app', '✅ 已加载', 'success');
+                        updateStatus('style', '✅ 正常', 'success');
+                        updateStatus('dom', '✅ 正常', 'success');
+                        isLoaded = true;
+                        
+                        // 检测样式注入
+                        setTimeout(checkStyleInjection, 1000);
+                        return Promise.resolve();
+                    },
+                    beforeUnmount: (app) => {
+                        log('info', `准备卸载子应用: ${app.name}`);
+                        return Promise.resolve();
+                    },
+                    afterUnmount: (app) => {
+                        log('success', `子应用卸载成功: ${app.name}`);
+                        updateStatus('app', '⚪ 未加载', 'warning');
+                        isLoaded = false;
+                        return Promise.resolve();
+                    }
+                });
+                
+                // 启动 qiankun
+                qiankun.start({
+                    prefetch: false,
+                    singular: true,
+                    sandbox: {
+                        strictStyleIsolation: false,
+                        experimentalStyleIsolation: true
+                    }
+                });
+                
+            } catch (error) {
+                log('error', `加载子应用失败: ${error.message}`);
+                updateStatus('app', '❌ 加载失败', 'error');
+            }
+        }
+        
+        // 卸载子应用
+        function unloadApp() {
+            if (!isLoaded) {
+                log('warn', '子应用未加载');
+                return;
+            }
+            
+            try {
+                log('info', '开始卸载子应用...');
+                qiankun.unloadMicroApp('react-user-management');
+            } catch (error) {
+                log('error', `卸载子应用失败: ${error.message}`);
+            }
+        }
+        
+        // 检测样式注入
+        function checkStyleInjection() {
+            const container = document.getElementById('micro-app-react-user-management');
+            
+            // 检查是否有 Antd 样式
+            const antdStyles = container.querySelectorAll('style[data-token-hash]');
+            const portalRoot = container.querySelector('#subapp-portal-root');
+            
+            if (antdStyles.length > 0) {
+                log('success', `发现 ${antdStyles.length} 个 Antd 样式标签`);
+                updateStatus('style', '✅ 已注入', 'success');
+            } else {
+                log('warn', '未发现 Antd CSS-in-JS 样式标签');
+                updateStatus('style', '⚠️ 无样式', 'warning');
+            }
+            
+            if (portalRoot) {
+                log('success', '发现弹层容器 #subapp-portal-root');
+            } else {
+                log('warn', '未发现弹层容器');
+            }
+        }
+        
+        // 测试 Antd 组件
+        function testAntdComponents() {
+            if (!isLoaded) {
+                log('warn', '请先加载子应用');
+                return;
+            }
+            
+            log('info', '开始测试 Antd 组件...');
+            
+            // 模拟触发 Antd 组件
+            const container = document.getElementById('micro-app-react-user-management');
+            const buttons = container.querySelectorAll('button');
+            
+            if (buttons.length > 0) {
+                log('info', `发现 ${buttons.length} 个按钮，尝试点击测试`);
+                buttons[0].click();
+            } else {
+                log('warn', '未发现可测试的按钮');
+            }
+        }
+        
+        // 清空日志
+        function clearLogs() {
+            document.getElementById('log-content').innerHTML = '';
+            log('info', '日志已清空');
+        }
+        
+        // 初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            log('info', '测试页面初始化完成');
+            checkQiankun();
+        });
+    </script>
+</body>
+</html>

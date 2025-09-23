@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>简单测试</title>
+</head>
+<body>
+    <h1>测试结果</h1>
+    <div id="result"></div>
+    
+    <script>
+        async function testConnection() {
+            const result = document.getElementById('result');
+            
+            try {
+                const response = await fetch('http://localhost:3001/', { 
+                    method: 'GET',
+                    mode: 'cors'
+                });
+                result.innerHTML = `<p style="color: green;">✅ 连接成功！状态: ${response.status}</p>`;
+                
+                const text = await response.text();
+                result.innerHTML += `<p>内容预览: ${text.substring(0, 200)}...</p>`;
+                
+            } catch (error) {
+                result.innerHTML = `<p style="color: red;">❌ 连接失败: ${error.message}</p>`;
+                console.error('Connection error:', error);
+            }
+        }
+        
+        testConnection();
+    </script>
+</body>
+</html>

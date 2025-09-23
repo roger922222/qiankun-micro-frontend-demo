@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Qiankun Test</title>
+</head>
+<body>
+    <h1>Qiankun 子应用测试</h1>
+    <div id="micro-app-react-user-management"></div>
+    
+    <script src="https://unpkg.com/qiankun@2.10.16/dist/index.js"></script>
+    <script>
+        const { registerMicroApps, start } = qiankun;
+        
+        registerMicroApps([
+            {
+                name: 'react-user-management',
+                entry: 'http://localhost:3001/',
+                container: '#micro-app-react-user-management',
+                activeRule: '/user-management',
+            }
+        ]);
+        
+        start();
+        
+        // 手动加载子应用进行测试
+        setTimeout(() => {
+            console.log('正在加载子应用...');
+            qiankun.loadMicroApp({
+                name: 'react-user-management',
+                entry: 'http://localhost:3001/',
+                container: '#micro-app-react-user-management'
+            }).then(app => {
+                console.log('子应用加载成功:', app);
+            }).catch(err => {
+                console.error('子应用加载失败:', err);
+            });
+        }, 1000);
+    </script>
+</body>
+</html>

@@ -250,7 +250,7 @@ const Dashboard: React.FC = () => {
                         </Avatar>
                       }
                       title={app.name}
-                      description={`端口: ${app.entry.split(':').pop()}`}
+                      description={`端口: ${typeof app.entry === 'string' ? app.entry.split(':').pop() : '3001'}`}
                     />
                     <Tag
                       color={availableApps.some(a => a.name === app.name) ? 'success' : 'error'}

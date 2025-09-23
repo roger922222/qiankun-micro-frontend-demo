@@ -1,0 +1,10 @@
+
+> react-user-management@1.0.0 dev
+> vite --port 3001
+
+
+  VITE v4.5.14  ready in 202 ms
+
+  ➜  Local:   http://localhost:3001/
+  ➜  Network: http://192.168.157.39:3001/
+  ➜  Network: http://10.4.33.204:3001/

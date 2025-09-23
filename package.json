@@ -37,15 +37,10 @@
     "test:subs": "cd sub-apps/react-app-1 && npm run test && cd ../react-app-2 && npm run test && cd ../react-app-3 && npm run test && cd ../react-app-4 && npm run test && cd ../react-app-5 && npm run test && cd ../vue-app-1 && npm run test && cd ../vue-app-2 && npm run test && cd ../vue-app-3 && npm run test",
     "clean": "rimraf **/node_modules **/dist **/build",
     "postinstall": "husky install",
-    "start:all": "./scripts/start-all.sh"
-  },
-  "homepage": "https://github.com/roger922222/qiankun-micro-frontend-demo#readme",
-  "bugs": {
-    "url": "https://github.com/roger922222/qiankun-micro-frontend-demo/issues"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/roger922222/qiankun-micro-frontend-demo.git"
+    "start": "./scripts/start-react-app-1-simple.sh",
+    "start:all": "./scripts/start-all.sh",
+    "start:react-app-1": "concurrently \"npm run dev:react-1\" \"npm run dev:react-1-backend\"",
+    "dev:react-1-backend": "cd sub-apps/react-app-1/backend && npm run dev"
   },
   "keywords": [
     "qiankun",
@@ -55,7 +50,7 @@
     "typescript",
     "微前端"
   ],
-  "author": "roger",
+  "author": "罗杰 <luojie.rt@example.com>",
   "license": "MIT",
   "devDependencies": {
     "concurrently": "^7.6.0",

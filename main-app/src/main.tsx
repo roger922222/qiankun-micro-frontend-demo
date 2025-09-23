@@ -20,6 +20,9 @@ import './styles/index.css';
 import App from './App';
 import ErrorFallback from './components/ErrorFallback';
 
+// 导入微前端配置
+import { setupMicroApps } from './micro-apps/setup';
+
 // 导入共享库
 import { globalLogger, setupGlobalErrorHandling } from '@shared/utils/logger';
 import { globalEventBus } from '@shared/communication/event-bus';
@@ -47,9 +50,8 @@ async function initializeApp() {
       }
     }
 
-    // 注意：延迟qiankun注册，直到容器组件渲染完成
-    // 这将在app组件的useEffect中处理
-    globalLogger.info(`Main application basic initialization completed - qiankun will be initialized after first render`);
+    // 注意：微前端应用设置延迟到App组件挂载后执行
+    // 这样可以确保容器元素已经渲染完成
 
     // 发射应用启动事件
     globalEventBus.emit({
@@ -63,6 +65,7 @@ async function initializeApp() {
       }
     });
 
+    globalLogger.info('Main application initialized successfully');
     return true;
   } catch (error) {
     globalLogger.error('Failed to initialize main application', error as Error);

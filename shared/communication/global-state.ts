@@ -18,7 +18,7 @@ export class GlobalStateManager {
 
   constructor(initialState?: Partial<GlobalState>) {
     this.state = this.createInitialState(initialState);
-    this.debug = typeof process !== 'undefined' && process.env.NODE_ENV === 'development';
+    this.debug = typeof process !== 'undefined' && process.env?.NODE_ENV === 'development';
   }
 
   /**
@@ -61,8 +61,8 @@ export class GlobalStateManager {
           logo: '/logo.png',
           description: '微前端架构示例项目',
           version: '1.0.0',
-          apiBaseUrl: typeof process !== 'undefined' && process.env.REACT_APP_API_BASE_URL || 'http://localhost:3001',
-          enableDevTools: typeof process !== 'undefined' &&  process.env.NODE_ENV === 'development',
+          apiBaseUrl: (typeof process !== 'undefined' && process.env?.REACT_APP_API_BASE_URL) || 'http://localhost:3001',
+          enableDevTools: typeof process !== 'undefined' && process.env?.NODE_ENV === 'development',
           enableMock: false,
           features: {}
         },
@@ -167,8 +167,8 @@ export class GlobalStateManager {
           name: 'Qiankun Micro Frontend Demo',
           version: '1.0.0',
           buildTime: new Date().toISOString(),
-          environment: (typeof process !== 'undefined' && process.env.NODE_ENV as any) || 'development',
-          nodeVersion: typeof process !== 'undefined' && process.version || 'unknown',
+          environment: (typeof process !== 'undefined' && process.env?.NODE_ENV as any) || 'development',
+          nodeVersion: (typeof process !== 'undefined' && process.version) || 'unknown',
           platform: typeof navigator !== 'undefined' ? navigator.platform : 'unknown',
           uptime: 0
         },

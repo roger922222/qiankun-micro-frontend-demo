@@ -11,18 +11,18 @@
     "type-check": "vue-tsc --noEmit"
   },
   "dependencies": {
-    "vue": "^3.3.4",
-    "vue-router": "^4.2.4",
-    "ant-design-vue": "^4.0.0",
     "@ant-design/icons-vue": "^7.0.1",
-    "@ant-design/plots": "^1.2.5",
+    "@ant-design/plots": "^2.6.4",
+    "ant-design-vue": "^4.0.0",
     "axios": "^1.3.4",
     "dayjs": "^1.11.7",
-    "lodash": "^4.17.21"
+    "lodash": "^4.17.21",
+    "vue": "^3.3.4",
+    "vue-router": "^4.2.4"
   },
   "devDependencies": {
-    "@types/node": "^18.16.17",
     "@types/lodash": "^4.14.191",
+    "@types/node": "^18.16.17",
     "@typescript-eslint/eslint-plugin": "^6.2.0",
     "@typescript-eslint/parser": "^6.2.0",
     "@vitejs/plugin-vue": "^4.2.3",

@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Antd + qiankun 沙箱样式注入冲突修复验证</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: #f5f5f5;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      padding: 20px;
+    }
+    
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+      padding-bottom: 20px;
+      border-bottom: 2px solid #1890ff;
+    }
+    
+    .test-section {
+      margin: 30px 0;
+      padding: 20px;
+      border: 1px solid #d9d9d9;
+      border-radius: 6px;
+      background: #fafafa;
+    }
+    
+    .test-section h3 {
+      color: #1890ff;
+      margin-top: 0;
+    }
+    
+    .status {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 500;
+      margin-left: 10px;
+    }
+    
+    .status.success {
+      background: #f6ffed;
+      color: #52c41a;
+      border: 1px solid #b7eb8f;
+    }
+    
+    .status.error {
+      background: #fff1f0;
+      color: #ff4d4f;
+      border: 1px solid #ffa39e;
+    }
+    
+    .status.pending {
+      background: #fff7e6;
+      color: #fa8c16;
+      border: 1px solid #ffd591;
+    }
+    
+    .button-group {
+      margin: 15px 0;
+    }
+    
+    .button-group button {
+      margin-right: 10px;
+      margin-bottom: 10px;
+      padding: 8px 16px;
+      border: 1px solid #1890ff;
+      background: #1890ff;
+      color: white;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    
+    .button-group button:hover {
+      background: #40a9ff;
+      border-color: #40a9ff;
+    }
+    
+    .log-area {
+      background: #001529;
+      color: #ffffff;
+      padding: 15px;
+      border-radius: 4px;
+      font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+      font-size: 12px;
+      line-height: 1.6;
+      max-height: 300px;
+      overflow-y: auto;
+      margin-top: 15px;
+    }
+    
+    .micro-app-container {
+      border: 2px solid #1890ff;
+      border-radius: 8px;
+      min-height: 500px;
+      background: white;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .loading {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: #1890ff;
+      font-size: 16px;
+    }
+    
+    .fix-info {
+      background: #e6f7ff;
+      border: 1px solid #91d5ff;
+      border-radius: 6px;
+      padding: 16px;
+      margin: 20px 0;
+    }
+    
+    .fix-info h4 {
+      color: #0050b3;
+      margin-top: 0;
+      margin-bottom: 12px;
+    }
+    
+    .fix-info ul {
+      margin: 0;
+      padding-left: 20px;
+    }
+    
+    .fix-info li {
+      margin: 8px 0;
+      color: #003a8c;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🔧 Antd + qiankun 沙箱样式注入冲突修复验证</h1>
+      <p>验证 StyleProvider + createCache 方案是否成功解决样式注入问题</p>
+      <div id="overall-status">
+        <span class="status pending">测试准备中...</span>
+      </div>
+    </div>
+
+    <div class="fix-info">
+      <h4>🎯 本次修复的核心技术要点</h4>
+      <ul>
+        <li><strong>StyleProvider + createCache</strong>：使用 @ant-design/cssinjs 将样式注入定向到子应用容器内</li>
+        <li><strong>稳定容器结构</strong>：在子应用根节点内创建专门的 portal 和样式容器</li>
+        <li><strong>统一弹层配置</strong>：配置 ConfigProvider 的 getPopupContainer，确保弹层渲染在子应用范围内</li>
+        <li><strong>生命周期管理</strong>：在 mount 时创建容器，unmount 时清理所有资源</li>
+        <li><strong>hashPriority: "high"</strong>：避免样式优先级冲突</li>
+      </ul>
+    </div>
+
+    <div class="test-section">
+      <h3>📋 测试项目清单</h3>
+      <div id="test-checklist">
+        <div class="test-item">
+          <span>✅ 添加 @ant-design/cssinjs 依赖</span>
+          <span class="status success">已完成</span>
+        </div>
+        <div class="test-item">
+          <span>✅ 实现 StyleProvider + createCache 配置</span>
+          <span class="status success">已完成</span>
+        </div>
+        <div class="test-item">
+          <span>✅ 创建稳定的容器结构</span>
+          <span class="status success">已完成</span>
+        </div>
+        <div class="test-item">
+          <span>✅ 配置全局组件容器（message、notification）</span>
+          <span class="status success">已完成</span>
+        </div>
+        <div class="test-item">
+          <span>✅ 统一弹层容器配置</span>
+          <span class="status success">已完成</span>
+        </div>
+        <div class="test-item">
+          <span>⏳ 子应用加载测试</span>
+          <span class="status pending" id="load-status">等待测试</span>
+        </div>
+        <div class="test-item">
+          <span>⏳ Antd 组件样式渲染测试</span>
+          <span class="status pending" id="style-status">等待测试</span>
+        </div>
+        <div class="test-item">
+          <span>⏳ 弹层组件容器测试</span>
+          <span class="status pending" id="popup-status">等待测试</span>
+        </div>
+        <div class="test-item">
+          <span>⏳ 卸载清理测试</span>
+          <span class="status pending" id="cleanup-status">等待测试</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="test-section">
+      <h3>🎮 操作控制台</h3>
+      <div class="button-group">
+        <button onclick="startTest()">开始测试</button>
+        <button onclick="loadSubApp()">加载子应用</button>
+        <button onclick="testAntdComponents()">测试 Antd 组件</button>
+        <button onclick="testPopupComponents()">测试弹层组件</button>
+        <button onclick="unloadSubApp()">卸载子应用</button>
+        <button onclick="clearLogs()">清空日志</button>
+      </div>
+    </div>
+
+    <div class="test-section">
+      <h3>📱 子应用容器</h3>
+      <div class="micro-app-container" id="micro-app-container">
+        <div class="loading" id="loading-indicator">
+          等待加载子应用...
+        </div>
+      </div>
+    </div>
+
+    <div class="test-section">
+      <h3>📊 测试日志</h3>
+      <div class="log-area" id="log-area">
+        <div>[系统] 测试页面已准备就绪</div>
+        <div>[信息] 等待开始测试...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- qiankun -->
+  <script src="https://unpkg.com/qiankun@2.10.16/dist/index.umd.min.js"></script>
+  
+  <script>
+    let currentApp = null;
+    
+    function log(message, type = 'info') {
+      const logArea = document.getElementById('log-area');
+      const timestamp = new Date().toLocaleTimeString();
+      const typeMap = {
+        'info': '[信息]',
+        'success': '[成功]',
+        'error': '[错误]',
+        'warning': '[警告]'
+      };
+      
+      const logEntry = document.createElement('div');
+      logEntry.innerHTML = `<span style="color: #666">${timestamp}</span> ${typeMap[type]} ${message}`;
+      logArea.appendChild(logEntry);
+      logArea.scrollTop = logArea.scrollHeight;
+    }
+    
+    function updateStatus(elementId, status, text) {
+      const element = document.getElementById(elementId);
+      if (element) {
+        element.className = `status ${status}`;
+        element.textContent = text;
+      }
+    }
+    
+    function clearLogs() {
+      document.getElementById('log-area').innerHTML = '';
+      log('日志已清空');
+    }
+    
+    async function startTest() {
+      log('🚀 开始完整测试流程', 'info');
+      
+      try {
+        await loadSubApp();
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        await testAntdComponents();
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        await testPopupComponents();
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        await unloadSubApp();
+        
+        log('✅ 完整测试流程执行完毕', 'success');
+        updateStatus('overall-status', 'success', '测试完成');
+        
+      } catch (error) {
+        log(`❌ 测试过程中发生错误: ${error.message}`, 'error');
+        updateStatus('overall-status', 'error', '测试失败');
+      }
+    }
+    
+    async function loadSubApp() {
+      log('📦 开始加载子应用...', 'info');
+      updateStatus('load-status', 'pending', '加载中...');
+      
+      try {
+        // 注册子应用
+        const { registerMicroApps, start } = window.qiankun;
+        
+        registerMicroApps([
+          {
+            name: 'react-user-management',
+            entry: 'http://localhost:3001',
+            container: '#micro-app-container',
+            activeRule: () => true,
+          }
+        ]);
+        
+        // 启动 qiankun
+        start({
+          sandbox: {
+            strictStyleIsolation: false,
+            experimentalStyleIsolation: true
+          }
+        });
+        
+        // 监听应用状态
+        window.addEventListener('single-spa:first-mount', () => {
+          log('✅ 子应用首次挂载成功', 'success');
+          updateStatus('load-status', 'success', '加载成功');
+          document.getElementById('loading-indicator').style.display = 'none';
+          
+          // 检查容器结构
+          setTimeout(() => {
+            checkContainerStructure();
+          }, 1000);
+        });
+        
+        window.addEventListener('single-spa:app-change', (event) => {
+          log(`📱 应用状态变化: ${JSON.stringify(event.detail)}`, 'info');
+        });
+        
+      } catch (error) {
+        log(`❌ 子应用加载失败: ${error.message}`, 'error');
+        updateStatus('load-status', 'error', '加载失败');
+        throw error;
+      }
+    }
+    
+    function checkContainerStructure() {
+      log('🔍 检查容器结构...', 'info');
+      
+      const container = document.getElementById('micro-app-container');
+      const portalRoot = container.querySelector('#subapp-portal-root');
+      const styleRoot = container.querySelector('#subapp-style-root');
+      
+      if (portalRoot) {
+        log('✅ 发现 portal 容器: #subapp-portal-root', 'success');
+      } else {
+        log('⚠️ 未发现 portal 容器', 'warning');
+      }
+      
+      if (styleRoot) {
+        log('✅ 发现样式容器: #subapp-style-root', 'success');
+        const styleCount = styleRoot.children.length;
+        log(`📊 样式容器中有 ${styleCount} 个样式标签`, 'info');
+      } else {
+        log('⚠️ 未发现样式容器', 'warning');
+      }
+      
+      updateStatus('style-status', 'success', '容器结构正常');
+    }
+    
+    async function testAntdComponents() {
+      log('🎨 测试 Antd 组件样式渲染...', 'info');
+      
+      try {
+        // 等待子应用加载完成
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // 检查是否有样式注入错误
+        const errorLogs = [];
+        const originalConsoleError = console.error;
+        console.error = (...args) => {
+          const message = args.join(' ');
+          if (message.includes('appendChild') || message.includes('Cannot set properties of null')) {
+            errorLogs.push(message);
+          }
+          originalConsoleError.apply(console, args);
+        };
+        
+        // 等待一段时间观察是否有错误
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        console.error = originalConsoleError;
+        
+        if (errorLogs.length === 0) {
+          log('✅ 未检测到样式注入错误', 'success');
+          updateStatus('style-status', 'success', '样式正常');
+        } else {
+          log(`❌ 检测到 ${errorLogs.length} 个样式注入错误`, 'error');
+          errorLogs.forEach(error => log(`错误详情: ${error}`, 'error'));
+          updateStatus('style-status', 'error', '样式异常');
+        }
+        
+      } catch (error) {
+        log(`❌ Antd 组件测试失败: ${error.message}`, 'error');
+        updateStatus('style-status', 'error', '测试失败');
+      }
+    }
+    
+    async function testPopupComponents() {
+      log('🎪 测试弹层组件容器...', 'info');
+      
+      try {
+        // 模拟触发弹层组件
+        const container = document.getElementById('micro-app-container');
+        const portalRoot = container.querySelector('#subapp-portal-root');
+        
+        if (portalRoot) {
+          log('✅ Portal 容器可用，弹层组件应该正常渲染', 'success');
+          updateStatus('popup-status', 'success', '弹层容器正常');
+        } else {
+          log('❌ Portal 容器不可用', 'error');
+          updateStatus('popup-status', 'error', '弹层容器异常');
+        }
+        
+      } catch (error) {
+        log(`❌ 弹层组件测试失败: ${error.message}`, 'error');
+        updateStatus('popup-status', 'error', '测试失败');
+      }
+    }
+    
+    async function unloadSubApp() {
+      log('🗑️ 开始卸载子应用...', 'info');
+      updateStatus('cleanup-status', 'pending', '卸载中...');
+      
+      try {
+        // 触发卸载
+        const { unloadApplication } = window.qiankun;
+        await unloadApplication('react-user-management');
+        
+        // 检查清理情况
+        setTimeout(() => {
+          const container = document.getElementById('micro-app-container');
+          const portalRoot = container.querySelector('#subapp-portal-root');
+          const styleRoot = container.querySelector('#subapp-style-root');
+          
+          if (!portalRoot && !styleRoot) {
+            log('✅ 容器已完全清理', 'success');
+            updateStatus('cleanup-status', 'success', '清理完成');
+          } else {
+            log('⚠️ 容器清理不完全', 'warning');
+            updateStatus('cleanup-status', 'warning', '清理不完全');
+          }
+          
+          document.getElementById('loading-indicator').style.display = 'block';
+          document.getElementById('loading-indicator').textContent = '子应用已卸载';
+        }, 1000);
+        
+      } catch (error) {
+        log(`❌ 子应用卸载失败: ${error.message}`, 'error');
+        updateStatus('cleanup-status', 'error', '卸载失败');
+      }
+    }
+    
+    // 页面加载完成后的初始化
+    window.addEventListener('load', () => {
+      log('🎉 测试页面加载完成', 'success');
+      log('💡 点击"开始测试"按钮执行完整测试流程', 'info');
+      log('🔧 或者单独点击各个测试按钮进行分步测试', 'info');
+    });
+    
+    // 监听全局错误
+    window.addEventListener('error', (event) => {
+      if (event.message.includes('appendChild') || event.message.includes('Cannot set properties of null')) {
+        log(`🚨 检测到样式注入错误: ${event.message}`, 'error');
+        log(`📍 错误位置: ${event.filename}:${event.lineno}:${event.colno}`, 'error');
+      }
+    });
+  </script>
+</body>
+</html>

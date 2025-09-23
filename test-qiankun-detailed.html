@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Qiankun 子应用测试</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { border: 2px solid #ccc; padding: 20px; margin: 20px 0; min-height: 200px; }
+        .log { background: #f5f5f5; padding: 10px; margin: 10px 0; font-family: monospace; }
+        .error { color: red; }
+        .success { color: green; }
+    </style>
+</head>
+<body>
+    <h1>Qiankun 子应用测试</h1>
+    
+    <div>
+        <button onclick="loadMicroApp()">加载子应用</button>
+        <button onclick="unloadMicroApp()">卸载子应用</button>
+        <button onclick="clearLog()">清除日志</button>
+    </div>
+    
+    <div id="log-container"></div>
+    
+    <h3>子应用容器：</h3>
+    <div id="micro-app-react-user-management" class="container"></div>
+    
+    <script src="https://unpkg.com/qiankun@2.10.16/dist/index.js"></script>
+    <script>
+        const logContainer = document.getElementById('log-container');
+        
+        function log(message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = 'log ' + type;
+            div.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logContainer.appendChild(div);
+        }
+        
+        function clearLog() {
+            logContainer.innerHTML = '';
+        }
+        
+        let microApp = null;
+        
+        function loadMicroApp() {
+            clearLog();
+            log('开始加载子应用...');
+            
+            try {
+                // 注册微应用
+                qiankun.registerMicroApps([
+                    {
+                        name: 'react-user-management',
+                        entry: 'http://localhost:3001/',
+                        container: '#micro-app-react-user-management',
+                        activeRule: '/user-management',
+                        props: {
+                            testProp: 'Hello from main app'
+                        }
+                    }
+                ]);
+                
+                // 启动 qiankun
+                qiankun.start({
+                    sandbox: {
+                        strictStyleIsolation: false,
+                        experimentalStyleIsolation: true
+                    }
+                });
+                
+                // 手动加载子应用
+                microApp = qiankun.loadMicroApp({
+                    name: 'react-user-management',
+                    entry: 'http://localhost:3001/',
+                    container: '#micro-app-react-user-management',
+                    props: {
+                        testProp: 'Hello from main app'
+                    }
+                });
+                
+                microApp.mountPromise.then(() => {
+                    log('子应用加载成功！', 'success');
+                }).catch(err => {
+                    log('子应用挂载失败: ' + err.message, 'error');
+                    console.error('挂载错误:', err);
+                });
+                
+            } catch (error) {
+                log('加载失败: ' + error.message, 'error');
+                console.error('加载错误:', error);
+            }
+        }
+        
+        function unloadMicroApp() {
+            if (microApp) {
+                log('开始卸载子应用...');
+                microApp.unmount().then(() => {
+                    log('子应用卸载成功！', 'success');
+                    microApp = null;
+                }).catch(err => {
+                    log('子应用卸载失败: ' + err.message, 'error');
+                });
+            } else {
+                log('没有可卸载的子应用', 'error');
+            }
+        }
+        
+        // 监听全局错误
+        window.addEventListener('error', (event) => {
+            log('全局错误: ' + event.error.message, 'error');
+            console.error('全局错误:', event.error);
+        });
+        
+        // 监听未处理的 Promise 拒绝
+        window.addEventListener('unhandledrejection', (event) => {
+            log('未处理的 Promise 拒绝: ' + event.reason, 'error');
+            console.error('Promise 拒绝:', event.reason);
+        });
+        
+        log('测试页面已加载，点击按钮开始测试');
+    </script>
+</body>
+</html>

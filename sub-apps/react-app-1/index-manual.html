@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>用户管理系统</title>
+    
+    <!-- 手动创建 qiankun 生命周期 -->
+    <script>
+      // 确保全局对象存在
+      window.legacyQiankun = window.legacyQiankun || {};
+      window.legacyQiankun['react-user-management'] = window.legacyQiankun['react-user-management'] || {};
+      
+      // 定义生命周期函数（将在主脚本加载后执行）
+      window.qiankunLifecycle = {
+        bootstrap: async function() {
+          console.log('[react-user-management] bootstrap');
+        },
+        mount: async function(props) {
+          console.log('[react-user-management] mount', props);
+          // 动态导入主模块
+          const module = await import('/src/main-qiankun-fixed.tsx');
+          if (module.mount) {
+            return module.mount(props);
+          }
+        },
+        unmount: async function(props) {
+          console.log('[react-user-management] unmount', props);
+          // 动态导入主模块
+          const module = await import('/src/main-qiankun-fixed.tsx');
+          if (module.unmount) {
+            return module.unmount(props);
+          }
+        }
+      };
+      
+      // 导出到全局，让 qiankun 可以找到
+      window['react-user-management'] = window.qiankunLifecycle;
+      
+      console.log('[react-user-management] 生命周期函数已注册:', window['react-user-management']);
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main-qiankun-fixed.tsx"></script>
+  </body>
+</html>

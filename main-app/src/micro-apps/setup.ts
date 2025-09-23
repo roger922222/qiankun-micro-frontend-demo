@@ -20,20 +20,19 @@ export const microAppConfigs: MicroAppConfig[] = [
   // React子应用
   {
     name: 'react-user-management',
-    entry: '//localhost:3001',
+    entry: 'http://localhost:3001/',  // 子应用入口，qiankun会自动解析HTML和JS
     container: '#micro-app-react-user-management',
     activeRule: '/user-management',
     props: {
       routerBase: '/user-management',
       getGlobalState: () => globalStateManager.getState(),
       setGlobalState: (state: any) => globalStateManager.setState(state),
-      eventBus: globalEventBus,
-      container: '#micro-app-react-user-management'
+      eventBus: globalEventBus
     }
   },
   {
     name: 'react-product-management',
-    entry: '//localhost:3002',
+    entry: 'http://localhost:3002',
     container: '#micro-app-react-product-management',
     activeRule: '/product-management',
     props: {
@@ -45,7 +44,7 @@ export const microAppConfigs: MicroAppConfig[] = [
   },
   {
     name: 'react-order-management',
-    entry: '//localhost:3003',
+    entry: 'http://localhost:3003',
     container: '#micro-app-react-order-management',
     activeRule: '/order-management',
     props: {
@@ -57,7 +56,7 @@ export const microAppConfigs: MicroAppConfig[] = [
   },
   {
     name: 'react-dashboard',
-    entry: '//localhost:3004',
+    entry: 'http://localhost:3004',
     container: '#micro-app-react-dashboard',
     activeRule: '/data-dashboard',
     props: {
@@ -69,7 +68,7 @@ export const microAppConfigs: MicroAppConfig[] = [
   },
   {
     name: 'react-settings',
-    entry: '//localhost:3005',
+    entry: 'http://localhost:3005',
     container: '#micro-app-react-settings',
     activeRule: '/settings',
     props: {
@@ -83,7 +82,7 @@ export const microAppConfigs: MicroAppConfig[] = [
   // Vue子应用
   {
     name: 'vue-message-center',
-    entry: '//localhost:3006',
+    entry: 'http://localhost:3006',
     container: '#micro-app-vue-message-center',
     activeRule: '/message-center',
     props: {
@@ -95,7 +94,7 @@ export const microAppConfigs: MicroAppConfig[] = [
   },
   {
     name: 'vue-file-management',
-    entry: '//localhost:3007',
+    entry: 'http://localhost:3007',
     container: '#micro-app-vue-file-management',
     activeRule: '/file-management',
     props: {
@@ -107,7 +106,7 @@ export const microAppConfigs: MicroAppConfig[] = [
   },
   {
     name: 'vue-system-monitor',
-    entry: '//localhost:3008',
+    entry: 'http://localhost:3008',
     container: '#micro-app-vue-system-monitor',
     activeRule: '/system-monitor',
     props: {
@@ -144,31 +143,116 @@ const lifecycleHooks = {
    */
   beforeLoad: (app: any) => {
     globalLogger.info(`Loading micro app: ${app.name}`);
-
-    // 检查容器是否存在
-    const containerElement = document.querySelector(app.container);
-    if (!containerElement) {
-      globalLogger.error(`Container not found for app ${app.name}: ${app.container}`);
-      return Promise.reject(new Error(`Container ${app.container} not found for ${app.name}`))
-    }
     
     // 显示加载进度
     NProgress.start();
     appLoadingStates.set(app.name, true);
     
-    // 发射应用加载事件
-    globalEventBus.emit({
-      type: EVENT_TYPES.APP_MOUNT,
-      source: 'main-app',
-      timestamp: new Date().toISOString(),
-      id: `app-loading-${app.name}-${Date.now()}`,
-      data: {
-        appName: app.name,
-        props: app.props
-      }
+    // 强化容器存在性检查
+    return new Promise((resolve, reject) => {
+      const startTime = Date.now();
+      const maxWaitTime = 15000; // 最多等待15秒
+      const checkInterval = 50; // 每50ms检查一次
+      
+      const checkContainer = () => {
+        const elapsedTime = Date.now() - startTime;
+        const container = document.querySelector(app.container);
+        
+        // 详细的DOM状态日志
+        const allMicroContainers = document.querySelectorAll('[id*="micro-app"]');
+        globalLogger.info(`容器检查 - 应用: ${app.name}`, {
+          container: app.container,
+          containerFound: !!container,
+          elapsedTime,
+          documentReady: document.readyState,
+          allMicroContainers: Array.from(allMicroContainers).map(el => ({
+            id: el.id,
+            tagName: el.tagName,
+            className: el.className
+          })),
+          bodyChildren: document.body.children.length,
+          timestamp: new Date().toISOString()
+        });
+        
+        if (container) {
+          globalLogger.info(`✓ 容器找到 - 应用: ${app.name}, 容器: ${app.container}, 耗时: ${elapsedTime}ms`);
+          
+          // 额外验证容器状态
+          const containerRect = container.getBoundingClientRect();
+          globalLogger.info(`容器状态验证 - 应用: ${app.name}`, {
+            id: container.id,
+            className: container.className,
+            tagName: container.tagName,
+            parentElement: container.parentElement?.tagName,
+            rect: {
+              width: containerRect.width,
+              height: containerRect.height,
+              top: containerRect.top,
+              left: containerRect.left
+            },
+            isConnected: container.isConnected,
+            offsetParent: !!container.offsetParent
+          });
+          
+          // 发射应用加载事件
+          globalEventBus.emit({
+            type: EVENT_TYPES.APP_MOUNT,
+            source: 'main-app',
+            timestamp: new Date().toISOString(),
+            id: `app-loading-${app.name}-${Date.now()}`,
+            data: {
+              appName: app.name,
+              props: app.props,
+              containerInfo: {
+                id: container.id,
+                rect: containerRect
+              }
+            }
+          });
+          
+          resolve(app);
+          return;
+        }
+        
+        if (elapsedTime > maxWaitTime) {
+          const errorMsg = `✗ 容器未找到 - 应用: ${app.name}, 容器: ${app.container}, 等待时间: ${elapsedTime}ms`;
+          
+          // 生成详细的错误报告
+          const errorReport = {
+            appName: app.name,
+            container: app.container,
+            elapsedTime,
+            documentReady: document.readyState,
+            bodyHTML: document.body.innerHTML.length,
+            allElements: document.querySelectorAll('*').length,
+            microAppElements: Array.from(allMicroContainers).map(el => ({
+              id: el.id,
+              tagName: el.tagName,
+              className: el.className,
+              innerHTML: el.innerHTML.substring(0, 100)
+            })),
+            possibleIssues: [
+              '1. 容器组件未正确渲染',
+              '2. 容器ID设置错误',
+              '3. React组件生命周期问题',
+              '4. 路由匹配问题',
+              '5. DOM更新时序问题'
+            ]
+          };
+          
+          globalLogger.error(errorMsg, new Error(JSON.stringify(errorReport)));
+          NProgress.done();
+          reject(new Error(`${errorMsg}\n详细信息: ${JSON.stringify(errorReport, null, 2)}`));
+          return;
+        }
+        
+        // 继续检查
+        setTimeout(checkContainer, checkInterval);
+      };
+      
+      // 立即开始检查
+      checkContainer();
     });
-
-    return Promise.resolve();
   },
 
   /**
@@ -273,7 +357,7 @@ function setupGlobalErrorHandler() {
  */
 function getAppEntry(name: string, defaultEntry: string): string {
   // 开发环境下使用本地地址
-  if (import.meta.env.DEV) {
+  if (process.env.NODE_ENV === 'development') {
     return defaultEntry;
   }
   
@@ -347,25 +431,40 @@ function startQiankun() {
     singular: false,
     
     // 获取公共依赖
-    getPublicPath: (entry: string) => {
+    getPublicPath: (entry: any) => {
       // 返回子应用的公共路径
-      return `${entry}/`;
+      let entryUrl = typeof entry === 'string' ? entry : entry?.scripts?.[0] || '';
+      
+      // 确保URL格式正确
+      if (entryUrl && !entryUrl.endsWith('/')) {
+        entryUrl += '/';
+      }
+      
+      globalLogger.info(`getPublicPath called with entry: ${JSON.stringify(entry)}, returning: ${entryUrl}`);
+      return entryUrl || '/';
     },
     
-    // 自定义fetch
-    fetch: (url: string, options?: RequestInit) => {
+    // 自定义fetch - 添加详细的错误处理和日志
+    fetch: (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = typeof input === 'string' ? input : input.toString();
+      globalLogger.info(`Fetching micro app resource: ${url}`);
+      
       // 可以在这里添加认证头等
       const token = localStorage.getItem('access_token');
       if (token) {
-        options = {
-          ...options,
+        init = {
+          ...init,
           headers: {
-            ...options?.headers,
+            ...init?.headers,
             Authorization: `Bearer ${token}`
           }
         };
       }
-      return window.fetch(url, options);
+      
+      return window.fetch(input, init).catch(error => {
+        globalLogger.error(`Failed to fetch micro app resource: ${url}`, error);
+        throw error;
+      });
     }
   });
 
