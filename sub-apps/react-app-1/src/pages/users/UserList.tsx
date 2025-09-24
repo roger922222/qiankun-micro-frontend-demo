@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { 
   Table, 
   Button, 
@@ -29,7 +29,7 @@ import { setSearchKeyword, setFilters, clearFilters } from '@/store/slices/userS
 import { useGetUsersQuery, useDeleteUserMutation, useImportUsersMutation } from '@/store/api/userApi';
 import { useGetRolesQuery } from '@/store/api/roleApi';
 import { formatDate, formatUserStatus } from '@/utils';
-import { USER_STATUS, USER_STATUS_LABELS } from '@/constants';
+import { USER_STATUS_LABELS } from '@/constants';
 import type { ColumnsType } from 'antd/es/table';
 import type { User } from '@/types';
 
@@ -53,7 +53,20 @@ const UserList: React.FC = () => {
     role: filters.role,
   });
 
-  const { data: roles = [] } = useGetRolesQuery();
+  const { data: rolesData = [] } = useGetRolesQuery();
+  
+  // 确保roles是数组类型，添加防御性编程
+  const roles = React.useMemo(() => {
+    if (Array.isArray(rolesData)) {
+      return rolesData;
+    }
+    // 如果API返回的是包装对象，尝试提取data字段
+    if (rolesData && typeof rolesData === 'object' && 'data' in rolesData) {
+      const data = (rolesData as any).data;
+      return Array.isArray(data) ? data : [];
+    }
+    return [];
+  }, [rolesData]);
   const [deleteUser] = useDeleteUserMutation();
   const [importUsers] = useImportUsersMutation();
 
@@ -173,7 +186,7 @@ const UserList: React.FC = () => {
       width: 150,
       render: (roles: any[]) => (
         <Space size="small" wrap>
-          {roles?.map((role) => (
+          {Array.isArray(roles) && roles.map((role) => (
             <Tag key={role.id} color="blue">
               {role.name}
             </Tag>
@@ -279,7 +292,7 @@ const UserList: React.FC = () => {
               value={filters.role}
               onChange={(value) => handleFilterChange('role', value)}
             >
-              {roles.map((role) => (
+              {Array.isArray(roles) && roles.map((role) => (
                 <Option key={role.id} value={role.code}>{role.name}</Option>
               ))}
             </Select>

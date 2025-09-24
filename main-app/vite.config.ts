@@ -14,9 +14,8 @@ export default defineConfig({
     // 代理配置
     proxy: {
       '/api': {
-        target: 'http://localhost:3001',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, '')
+        target: 'http://localhost:3002',
+        changeOrigin: true
       }
     }
   },

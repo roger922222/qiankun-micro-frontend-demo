@@ -18,6 +18,9 @@ export const roleApi = createApi({
     // 获取角色列表
     getRoles: builder.query<Role[], void>({
       query: () => 'roles',
+      transformResponse: (response: { success: boolean; data: Role[] }) => {
+        return response?.data || [];
+      },
       providesTags: ['RoleList'],
     }),
     

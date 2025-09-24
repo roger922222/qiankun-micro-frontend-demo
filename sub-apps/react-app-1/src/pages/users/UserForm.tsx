@@ -3,7 +3,7 @@ import { Card, Form, Input, Select, Button, Space, message, Row, Col } from 'ant
 import { useNavigate, useParams } from 'react-router-dom';
 import { useGetUserByIdQuery, useCreateUserMutation, useUpdateUserMutation } from '@/store/api/userApi';
 import { useGetRolesQuery } from '@/store/api/roleApi';
-import { USER_STATUS, USER_STATUS_LABELS } from '@/constants';
+import { USER_STATUS_LABELS } from '@/constants';
 
 const { Option } = Select;
 
@@ -18,7 +18,20 @@ const UserForm: React.FC = () => {
     skip: !isEdit,
   });
   
-  const { data: roles = [] } = useGetRolesQuery();
+  const { data: rolesData = [] } = useGetRolesQuery();
+  
+  // 确保roles是数组类型，添加防御性编程
+  const roles = React.useMemo(() => {
+    if (Array.isArray(rolesData)) {
+      return rolesData;
+    }
+    // 如果API返回的是包装对象，尝试提取data字段
+    if (rolesData && typeof rolesData === 'object' && 'data' in rolesData) {
+      const data = (rolesData as any).data;
+      return Array.isArray(data) ? data : [];
+    }
+    return [];
+  }, [rolesData]);
   const [createUser, { isLoading: createLoading }] = useCreateUserMutation();
   const [updateUser, { isLoading: updateLoading }] = useUpdateUserMutation();
 
@@ -26,7 +39,7 @@ const UserForm: React.FC = () => {
     if (isEdit && user) {
       form.setFieldsValue({
         ...user,
-        roles: user.roles.map(role => role.id),
+        roles: Array.isArray(user.roles) ? user.roles.map(role => role.id) : [],
       });
     }
   }, [user, isEdit, form]);
@@ -157,7 +170,7 @@ const UserForm: React.FC = () => {
                   placeholder="请选择角色"
                   allowClear
                 >
-                  {roles.map((role) => (
+                  {Array.isArray(roles) && roles.map((role) => (
                     <Option key={role.id} value={role.id}>
                       {role.name}
                     </Option>
