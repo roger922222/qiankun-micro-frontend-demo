@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # qiankun微前端项目统一启动脚本
-# 支持一键启动所有应用，智能检测后端服务
+# 支持一键启动所有应用
 
 set -e
 
@@ -62,12 +62,6 @@ install_dependencies() {
         if [ -d "sub-apps/$app" ]; then
             echo -e "${PURPLE}  - 安装 $app 依赖...${NC}"
             cd "sub-apps/$app" && pnpm install && cd ../..
-            
-            # 安装后端依赖（如果存在）
-            if [ -d "sub-apps/$app/backend" ]; then
-                echo -e "${PURPLE}    - 安装 $app 后端依赖...${NC}"
-                cd "sub-apps/$app/backend" && pnpm install && cd ../../..
-            fi
         fi
     done
     
@@ -77,81 +71,10 @@ install_dependencies() {
         if [ -d "sub-apps/$app" ]; then
             echo -e "${PURPLE}  - 安装 $app 依赖...${NC}"
             cd "sub-apps/$app" && pnpm install && cd ../..
-            
-            # 安装后端依赖（如果存在）
-            if [ -d "sub-apps/$app/backend" ]; then
-                echo -e "${PURPLE}    - 安装 $app 后端依赖...${NC}"
-                cd "sub-apps/$app/backend" && pnpm install && cd ../../..
-            fi
         fi
     done
     
     echo -e "${GREEN}✅ 所有依赖安装完成${NC}"
-}
-
-# 检测应用是否有后端服务
-has_backend() {
-    local app_path="$1"
-    if [ -d "$app_path/backend" ] && [ -f "$app_path/backend/package.json" ]; then
-        return 0  # 有后端
-    else
-        return 1  # 无后端
-    fi
-}
-
-# 健康检查函数
-check_service_health() {
-    local port="$1"
-    local service_name="$2"
-    local max_attempts=10
-    local attempt=1
-    
-    echo -e "${BLUE}检查 $service_name (端口: $port) 健康状态...${NC}"
-    
-    while [ $attempt -le $max_attempts ]; do
-        if lsof -i :$port > /dev/null 2>&1; then
-            echo -e "${GREEN}✅ $service_name 启动成功${NC}"
-            return 0
-        fi
-        echo -e "${YELLOW}⏳ 等待 $service_name 启动... (尝试 $attempt/$max_attempts)${NC}"
-        sleep 2
-        attempt=$((attempt + 1))
-    done
-    
-    echo -e "${RED}❌ $service_name 启动失败或超时${NC}"
-    return 1
-}
-
-# 启动应用（智能检测前后端）
-start_app() {
-    local app_name="$1"
-    local app_path="$2"
-    local frontend_port="$3"
-    local backend_port="$4"
-    local display_name="$5"
-    
-    if [ -d "$app_path" ]; then
-        if has_backend "$app_path"; then
-            echo -e "${PURPLE}  - 启动 $display_name (前端: $frontend_port, 后端: $backend_port)...${NC}"
-            cd "$app_path"
-            # 启动前端
-            pnpm run dev > "../../logs/${app_name}-frontend.log" 2>&1 &
-            # 启动后端
-            if [ -f "backend/package.json" ]; then
-                cd backend
-                pnpm run dev > "../../../logs/${app_name}-backend.log" 2>&1 &
-                cd ..
-            fi
-            cd ../..
-            sleep 3
-        else
-            echo -e "${PURPLE}  - 启动 $display_name (前端: $frontend_port)...${NC}"
-            cd "$app_path"
-            pnpm run dev > "../../logs/${app_name}-frontend.log" 2>&1 &
-            cd ../..
-            sleep 1
-        fi
-    fi
 }
 
 # 启动应用
@@ -174,32 +97,80 @@ start_applications() {
     # 启动React子应用
     echo -e "${CYAN}🚀 启动React子应用...${NC}"
     
-    # React App 1 - 用户管理 (前端: 3001, 后端: 3002)
-    start_app "react-app-1" "sub-apps/react-app-1" "3001" "3002" "用户管理系统"
+    # React App 1 - 用户管理 (端口: 3001)
+    if [ -d "sub-apps/react-app-1" ]; then
+        echo -e "${PURPLE}  - 启动用户管理系统 (端口: 3001)...${NC}"
+        cd sub-apps/react-app-1
+        pnpm run dev > ../../logs/react-app-1.log 2>&1 &
+        cd ../..
+        sleep 1
+    fi
     
-    # React App 2 - 商品管理 (前端: 3012)
-    start_app "react-app-2" "sub-apps/react-app-2" "3012" "" "商品管理系统"
+    # React App 2 - 商品管理 (端口: 3002)
+    if [ -d "sub-apps/react-app-2" ]; then
+        echo -e "${PURPLE}  - 启动商品管理系统 (端口: 3002)...${NC}"
+        cd sub-apps/react-app-2
+        pnpm run dev > ../../logs/react-app-2.log 2>&1 &
+        cd ../..
+        sleep 1
+    fi
     
-    # React App 3 - 订单管理 (前端: 3003)
-    start_app "react-app-3" "sub-apps/react-app-3" "3003" "" "订单管理系统"
+    # React App 3 - 订单管理 (端口: 3003)
+    if [ -d "sub-apps/react-app-3" ]; then
+        echo -e "${PURPLE}  - 启动订单管理系统 (端口: 3003)...${NC}"
+        cd sub-apps/react-app-3
+        pnpm run dev > ../../logs/react-app-3.log 2>&1 &
+        cd ../..
+        sleep 1
+    fi
     
-    # React App 4 - 数据看板 (前端: 3004)
-    start_app "react-app-4" "sub-apps/react-app-4" "3004" "" "数据看板"
+    # React App 4 - 数据看板 (端口: 3004)
+    if [ -d "sub-apps/react-app-4" ]; then
+        echo -e "${PURPLE}  - 启动数据看板 (端口: 3004)...${NC}"
+        cd sub-apps/react-app-4
+        pnpm run dev > ../../logs/react-app-4.log 2>&1 &
+        cd ../..
+        sleep 1
+    fi
     
-    # React App 5 - 设置中心 (前端: 3005)
-    start_app "react-app-5" "sub-apps/react-app-5" "3005" "" "设置中心"
+    # React App 5 - 设置中心 (端口: 3005)
+    if [ -d "sub-apps/react-app-5" ]; then
+        echo -e "${PURPLE}  - 启动设置中心 (端口: 3005)...${NC}"
+        cd sub-apps/react-app-5
+        pnpm run dev > ../../logs/react-app-5.log 2>&1 &
+        cd ../..
+        sleep 1
+    fi
     
     # 启动Vue子应用
     echo -e "${CYAN}🚀 启动Vue子应用...${NC}"
     
-    # Vue App 1 - 消息中心 (前端: 3006)
-    start_app "vue-app-1" "sub-apps/vue-app-1" "3006" "" "消息中心"
+    # Vue App 1 - 消息中心 (端口: 3006)
+    if [ -d "sub-apps/vue-app-1" ]; then
+        echo -e "${PURPLE}  - 启动消息中心 (端口: 3006)...${NC}"
+        cd sub-apps/vue-app-1
+        pnpm run dev > ../../logs/vue-app-1.log 2>&1 &
+        cd ../..
+        sleep 1
+    fi
     
-    # Vue App 2 - 文件管理 (前端: 3007)
-    start_app "vue-app-2" "sub-apps/vue-app-2" "3007" "" "文件管理"
+    # Vue App 2 - 文件管理 (端口: 3007)
+    if [ -d "sub-apps/vue-app-2" ]; then
+        echo -e "${PURPLE}  - 启动文件管理 (端口: 3007)...${NC}"
+        cd sub-apps/vue-app-2
+        pnpm run dev > ../../logs/vue-app-2.log 2>&1 &
+        cd ../..
+        sleep 1
+    fi
     
-    # Vue App 3 - 系统监控 (前端: 3008)
-    start_app "vue-app-3" "sub-apps/vue-app-3" "3008" "" "系统监控"
+    # Vue App 3 - 系统监控 (端口: 3008)
+    if [ -d "sub-apps/vue-app-3" ]; then
+        echo -e "${PURPLE}  - 启动系统监控 (端口: 3008)...${NC}"
+        cd sub-apps/vue-app-3
+        pnpm run dev > ../../logs/vue-app-3.log 2>&1 &
+        cd ../..
+        sleep 1
+    fi
     
     echo -e "${GREEN}✅ 所有应用启动完成${NC}"
 }
@@ -212,17 +183,8 @@ show_status() {
     echo -e "${GREEN}🌐 主应用:${NC}          http://localhost:3000"
     echo ""
     echo -e "${YELLOW}📱 React子应用:${NC}"
-    
-    # 检查并显示每个应用的状态
-    if [ -d "sub-apps/react-app-1" ]; then
-        if has_backend "sub-apps/react-app-1"; then
-            echo -e "  用户管理系统:      http://localhost:3001 (API: 3002)"
-        else
-            echo -e "  用户管理系统:      http://localhost:3001"
-        fi
-    fi
-    
-    echo -e "  商品管理系统:      http://localhost:3012"
+    echo -e "  用户管理系统:      http://localhost:3001"
+    echo -e "  商品管理系统:      http://localhost:3002"
     echo -e "  订单管理系统:      http://localhost:3003"
     echo -e "  数据看板:          http://localhost:3004"
     echo -e "  设置中心:          http://localhost:3005"
@@ -244,7 +206,6 @@ show_status() {
     echo ""
     echo -e "${GREEN}🎯 访问主应用开始体验微前端架构!${NC}"
     echo -e "${BLUE}📝 日志文件位置: ./logs/${NC}"
-    echo -e "${PURPLE}📊 前端日志: *-frontend.log, 后端日志: *-backend.log${NC}"
     echo ""
 }
 
@@ -256,7 +217,6 @@ cleanup() {
     # 杀死所有相关进程
     pkill -f "vite.*--port 300" 2>/dev/null || true
     pkill -f "pnpm.*dev" 2>/dev/null || true
-    pkill -f "tsx.*app.ts" 2>/dev/null || true
     
     echo -e "${GREEN}✅ 所有应用已停止${NC}"
     exit 0

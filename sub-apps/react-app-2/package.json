@@ -4,9 +4,9 @@
   "description": "React商品管理子应用 - 使用Zustand状态管理",
   "private": true,
   "scripts": {
-    "dev": "vite --port 3002",
+    "dev": "vite --port 3012",
     "build": "vite build",
-    "preview": "vite preview --port 3002",
+    "preview": "vite preview --port 3012",
     "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "lint:fix": "eslint src --ext ts,tsx --fix",
     "type-check": "tsc --noEmit",

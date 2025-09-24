@@ -4,7 +4,7 @@
   "description": "用户管理BFF层 - Node.js + Express",
   "private": true,
   "scripts": {
-    "dev": "tsx src/app.ts",
+    "dev": "ts-node src/app.ts",
     "build": "tsc",
     "start": "node dist/app.js",
     "lint": "eslint src --ext ts --report-unused-disable-directives --max-warnings 0",

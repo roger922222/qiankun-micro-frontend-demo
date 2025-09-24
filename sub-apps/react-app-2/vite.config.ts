@@ -8,9 +8,9 @@ export default defineConfig({
   
   // 开发服务器配置
   server: {
-    port: 3002,
+    port: 3012,
     cors: true,
-    origin: 'http://localhost:3002'
+    origin: 'http://localhost:3012'
   },
   
   // 构建配置
