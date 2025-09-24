@@ -10,7 +10,6 @@
 
     /* Bundler mode */
     "moduleResolution": "node",
-    "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
@@ -30,5 +29,8 @@
     }
   },
   "include": ["src", "../../shared"],
-  "references": [{ "path": "./tsconfig.node.json" }]
+  "references": [
+    { "path": "./tsconfig.node.json" },
+    { "path": "./tsconfig.backend.json" }
+  ]
 }

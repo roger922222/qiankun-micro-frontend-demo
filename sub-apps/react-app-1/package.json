@@ -5,17 +5,21 @@
   "private": true,
   "scripts": {
     "dev": "vite --port 3001",
-    "dev:backend": "cd backend && npm run dev",
-    "dev:all": "concurrently \"npm run dev\" \"npm run dev:backend\"",
+    "dev:frontend": "vite --port 3001",
+    "dev:backend": "cd backend && ts-node src/app.ts",
+    "dev:all": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\"",
     "build": "tsc && vite build",
-    "build:backend": "cd backend && npm run build",
+    "build:frontend": "tsc && vite build",
+    "build:backend": "tsc --project tsconfig.backend.json",
+    "build:all": "npm run build:frontend && npm run build:backend",
+    "start:backend": "node backend/dist/app.js",
     "preview": "vite preview --port 3001",
     "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "lint:fix": "eslint src --ext ts,tsx --fix",
-    "lint:backend": "cd backend && npm run lint",
+    "lint:backend": "eslint backend/src --ext ts --report-unused-disable-directives --max-warnings 0",
+    "lint:backend:fix": "eslint backend/src --ext ts --fix",
     "type-check": "tsc --noEmit",
-    "type-check:backend": "cd backend && npm run type-check",
-    "install:all": "npm install && cd backend && npm install"
+    "type-check:backend": "tsc --project tsconfig.backend.json --noEmit"
   },
   "dependencies": {
     "@ant-design/cssinjs": "^1.18.4",
@@ -25,7 +29,19 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-redux": "^8.0.5",
-    "react-router-dom": "^6.8.1"
+    "react-router-dom": "^6.8.1",
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "helmet": "^7.0.0",
+    "express-rate-limit": "^6.7.0",
+    "joi": "^17.9.2",
+    "jsonwebtoken": "^9.0.0",
+    "bcryptjs": "^2.4.3",
+    "uuid": "^9.0.0",
+    "dayjs": "^1.11.7",
+    "multer": "^1.4.5-lts.1",
+    "xlsx": "^0.18.5",
+    "csv-parser": "^3.0.0"
   },
   "devDependencies": {
     "@types/react": "^18.0.28",
@@ -40,6 +56,15 @@
     "eslint-plugin-react-refresh": "^0.3.4",
     "typescript": "^4.9.3",
     "vite": "^4.1.0",
-    "concurrently": "^7.6.0"
+    "concurrently": "^7.6.0",
+    "@types/express": "^4.17.17",
+    "@types/cors": "^2.8.13",
+    "@types/jsonwebtoken": "^9.0.2",
+    "@types/bcryptjs": "^2.4.2",
+    "@types/uuid": "^9.0.2",
+    "@types/multer": "^1.4.7",
+    "tsx": "^3.12.2",
+    "nodemon": "^2.0.22",
+    "ts-node": "^10.9.1"
   }
 }

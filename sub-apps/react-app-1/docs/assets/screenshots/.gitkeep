@@ -1,0 +1,14 @@
+# 截图说明目录
+
+此目录用于存放项目功能截图和界面说明图片。
+
+## 文件命名规范
+- 使用kebab-case命名
+- 包含功能模块名称
+- 文件格式推荐：.png, .jpg
+
+## 示例文件
+- user-management-list.png
+- user-form-create.png
+- api-response-example.png
+- error-handling-demo.png

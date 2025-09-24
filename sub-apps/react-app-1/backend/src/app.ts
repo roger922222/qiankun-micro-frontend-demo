@@ -7,7 +7,7 @@ import { userRoutes } from './routes/users';
 import { roleRoutes } from './routes/roles';
 import { permissionRoutes } from './routes/permissions';
 import { logRoutes } from './routes/logs';
-import { authMiddleware } from './middleware/auth';
+// import { authMiddleware } from './middleware/auth';
 
 const app = express();
 const PORT = process.env.PORT || 3002;
@@ -30,7 +30,7 @@ const limiter = rateLimit({
 app.use('/api', limiter);
 
 // 健康检查
-app.get('/health', (req, res) => {
+app.get('/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
@@ -44,7 +44,7 @@ app.use('/api/logs', logRoutes);
 app.use(errorHandler);
 
 // 404处理
-app.use('*', (req, res) => {
+app.use('*', (_req, res) => {
   res.status(404).json({ message: 'API 不存在' });
 });
 

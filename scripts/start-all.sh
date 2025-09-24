@@ -64,7 +64,7 @@ install_dependencies() {
             cd "sub-apps/$app" && pnpm install && cd ../..
             
             # 安装后端依赖（如果存在）
-            if [ -d "sub-apps/$app/backend" ]; then
+            if [ -d "sub-apps/$app/backend" ] && [ "$app" != "react-app-1" ]; then
                 echo -e "${PURPLE}    - 安装 $app 后端依赖...${NC}"
                 cd "sub-apps/$app/backend" && pnpm install && cd ../../..
             fi
@@ -92,7 +92,15 @@ install_dependencies() {
 # 检测应用是否有后端服务
 has_backend() {
     local app_path="$1"
-    if [ -d "$app_path/backend" ] && [ -f "$app_path/backend/package.json" ]; then
+    # 对于react-app-1，检查是否有tsconfig.backend.json和backend目录
+    if [ "$app_path" = "sub-apps/react-app-1" ]; then
+        if [ -d "$app_path/backend" ] && [ -f "$app_path/tsconfig.backend.json" ]; then
+            return 0  # 有后端
+        else
+            return 1  # 无后端
+        fi
+    # 对于其他应用，保持原有检测逻辑
+    elif [ -d "$app_path/backend" ] && [ -f "$app_path/backend/package.json" ]; then
         return 0  # 有后端
     else
         return 1  # 无后端
@@ -135,9 +143,13 @@ start_app() {
             echo -e "${PURPLE}  - 启动 $display_name (前端: $frontend_port, 后端: $backend_port)...${NC}"
             cd "$app_path"
             # 启动前端
-            pnpm run dev > "../../logs/${app_name}-frontend.log" 2>&1 &
+            pnpm run dev:frontend > "../../logs/${app_name}-frontend.log" 2>&1 &
             # 启动后端
-            if [ -f "backend/package.json" ]; then
+            if [ "$app_name" = "react-app-1" ]; then
+                # react-app-1使用合并后的配置
+                pnpm run dev:backend > "../../logs/${app_name}-backend.log" 2>&1 &
+            elif [ -f "backend/package.json" ]; then
+                # 其他应用使用原有方式
                 cd backend
                 pnpm run dev > "../../../logs/${app_name}-backend.log" 2>&1 &
                 cd ..

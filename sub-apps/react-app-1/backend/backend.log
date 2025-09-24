@@ -1,0 +1,6 @@
+
+> react-user-management-backend@1.0.0 dev
+> ts-node src/app.ts
+
+🚀 BFF服务器运行在端口 3002
+📊 API文档: http://localhost:3002/api-docs

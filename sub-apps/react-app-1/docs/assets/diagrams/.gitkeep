@@ -1,0 +1,14 @@
+# 架构图表目录
+
+此目录用于存放项目架构图表和技术设计图。
+
+## 文件命名规范
+- 使用kebab-case命名
+- 包含版本号或日期
+- 文件格式推荐：.png, .svg, .mermaid
+
+## 示例文件
+- system-architecture-v1.0.png
+- api-flow-diagram.svg
+- database-schema.mermaid
+- deployment-diagram.png
