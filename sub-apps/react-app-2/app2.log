@@ -3,7 +3,7 @@
 > vite --port 3002
 
 
-  VITE v4.5.14  ready in 415 ms
+  VITE v4.5.14  ready in 244 ms
 
   ➜  Local:   http://localhost:3002/
-  ➜  Network: use --host to expose
+  ➜  Network: http://100.84.216.93:3002/

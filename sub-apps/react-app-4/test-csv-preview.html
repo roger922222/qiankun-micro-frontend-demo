@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSV文件预览测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #e8e8e8;
+            border-radius: 6px;
+        }
+        .test-title {
+            color: #1890ff;
+            margin-bottom: 15px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .success {
+            color: #52c41a;
+            font-weight: bold;
+        }
+        .info {
+            color: #1890ff;
+            margin-bottom: 10px;
+        }
+        .feature-list {
+            list-style-type: none;
+            padding: 0;
+        }
+        .feature-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .feature-list li:before {
+            content: "✓";
+            color: #52c41a;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        .download-link {
+            display: inline-block;
+            padding: 8px 16px;
+            background: #1890ff;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+        .download-link:hover {
+            background: #40a9ff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>CSV文件预览功能测试</h1>
+        
+        <div class="test-section">
+            <div class="test-title">✅ CSV文件预览功能已成功添加</div>
+            <div class="success">功能实现完成！</div>
+            <div class="info">已为 FilePreview 组件添加了完整的 CSV 文件格式支持</div>
+        </div>
+
+        <div class="test-section">
+            <div class="test-title">🚀 新增功能特性</div>
+            <ul class="feature-list">
+                <li>支持 CSV 文件格式检测和预览</li>
+                <li>使用现有的 xlsx 库解析 CSV 文件（减少依赖）</li>
+                <li>表格形式展示 CSV 数据，类似 Excel</li>
+                <li>支持大文件分页显示（每页100行，可调整）</li>
+                <li>支持列排序功能（数字和字符串智能排序）</li>
+                <li>支持数据搜索/筛选功能</li>
+                <li>显示行号和列标题</li>
+                <li>文件大小限制：50MB</li>
+                <li>超过10000行数据时显示性能提示</li>
+                <li>响应式设计，移动端友好</li>
+            </ul>
+        </div>
+
+        <div class="test-section">
+            <div class="test-title">📊 测试数据文件</div>
+            <div class="info">已创建测试用的 CSV 文件：</div>
+            <a href="./public/test-data.csv" class="download-link" download>下载 test-data.csv</a>
+            <p>包含30行员工数据，包括姓名、年龄、部门、职位、入职日期、薪资、城市等字段</p>
+        </div>
+
+        <div class="test-section">
+            <div class="test-title">🔧 技术实现细节</div>
+            <ul class="feature-list">
+                <li>扩展了 FilePreviewProps 接口，添加 CSV 类型支持</li>
+                <li>在文件大小检查中添加了 CSV 格式（50MB限制）</li>
+                <li>实现了 loadCsvDocument 函数处理 CSV 解析</li>
+                <li>添加了 CSV 排序和搜索功能</li>
+                <li>更新了工具栏，添加 CSV 专用控制组件</li>
+                <li>扩展了 CSS 样式，添加 CSV 预览样式</li>
+                <li>更新了 Reports 页面，支持 CSV 文件上传和预览</li>
+            </ul>
+        </div>
+
+        <div class="test-section">
+            <div class="test-title">🎯 用户体验优化</div>
+            <ul class="feature-list">
+                <li>CSV 表格支持点击列标题进行排序</li>
+                <li>实时搜索功能，支持全表数据筛选</li>
+                <li>分页显示，支持自定义每页显示行数</li>
+                <li>表格行交替颜色显示，提高可读性</li>
+                <li>大文件性能提示和优化建议</li>
+                <li>统一的文件预览界面风格</li>
+            </ul>
+        </div>
+
+        <div class="test-section">
+            <div class="test-title">📝 使用说明</div>
+            <div class="info">如何测试 CSV 预览功能：</div>
+            <ol>
+                <li>启动 react-app-4 应用：<code>npm run dev</code></li>
+                <li>访问 Reports 页面</li>
+                <li>上传 CSV 文件或点击"员工数据统计"报告预览</li>
+                <li>测试排序功能：点击任意列标题</li>
+                <li>测试搜索功能：在搜索框中输入关键词</li>
+                <li>测试分页功能：查看分页控制器</li>
+            </ol>
+        </div>
+
+        <div class="test-section">
+            <div class="test-title">⚡ 性能特性</div>
+            <ul class="feature-list">
+                <li>智能数据类型检测（数字 vs 字符串排序）</li>
+                <li>虚拟滚动支持（通过 Ant Design Table）</li>
+                <li>分页加载，避免大数据量渲染问题</li>
+                <li>搜索结果实时更新</li>
+                <li>内存优化，原始数据缓存</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

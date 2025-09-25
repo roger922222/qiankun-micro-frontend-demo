@@ -22,6 +22,9 @@ import ErrorFallback from './components/ErrorFallback';
 // 导入共享库
 import { globalLogger } from '@shared/utils/logger';
 
+// 导入qiankun插件辅助函数
+import { createLifecyle, getMicroApp } from 'vite-plugin-legacy-qiankun';
+
 // 导入导航集成
 import { createMicroAppNavigation } from '@shared/communication/navigation/micro-app-integration';
 
@@ -106,46 +109,40 @@ function render(props?: any) {
   return reactRoot;
 }
 
-/**
- * qiankun生命周期 - 启动
- */
-export async function bootstrap() {
-  globalLogger.info('React Product Management app bootstrapped');
-}
+// 使用插件提供的辅助函数
+const microApp = getMicroApp('react-product-management');
 
-/**
- * qiankun生命周期 - 挂载
- */
-export async function mount(props: any) {
-  globalLogger.info('React Product Management app mounting', props);
-  
-  // 验证挂载参数
-  if (!props || !props.container) {
-    const error = new Error('Invalid mount props: container is required');
-    globalLogger.error('Mount failed', error, { props });
-    throw error;
-  }
-  
-  render(props);
-}
-
-/**
- * qiankun生命周期 - 卸载
- */
-export async function unmount(_props: any) {
-  globalLogger.info('React Product Management app unmounting');
-  
-  // 使用保存的 root 实例进行卸载，而不是重新创建
-  if (reactRoot) {
-    reactRoot.unmount();
-    reactRoot = null; // 清空引用
-  }
-}
-
-/**
- * 独立运行模式
- */
-if (!window.__POWERED_BY_QIANKUN__) {
+// 判断是否在qiankun环境下运行
+if (microApp.__POWERED_BY_QIANKUN__) {
+  // 使用createLifecyle导出生命周期函数
+  createLifecyle('react-product-management', {
+    bootstrap() {
+      globalLogger.info('React Product Management app bootstrapped');
+    },
+    mount(props: any) {
+      globalLogger.info('React Product Management app mounting', props);
+      
+      // 验证挂载参数
+      if (!props || !props.container) {
+        const error = new Error('Invalid mount props: container is required');
+        globalLogger.error('Mount failed', error, { props });
+        throw error;
+      }
+      
+      render(props);
+    },
+    unmount() {
+      globalLogger.info('React Product Management app unmounting');
+      
+      // 使用保存的 root 实例进行卸载
+      if (reactRoot) {
+        reactRoot.unmount();
+        reactRoot = null;
+      }
+    },
+  });
+} else {
+  // 独立运行模式
   render();
 }
 
@@ -159,12 +156,6 @@ declare global {
   interface Window {
     __POWERED_BY_QIANKUN__?: boolean;
     __INJECTED_PUBLIC_PATH_BY_QIANKUN__?: string;
-    // qiankun 生命周期函数
-    ReactProductManagement?: {
-      bootstrap: typeof bootstrap;
-      mount: typeof mount;
-      unmount: typeof unmount;
-    };
   }
 }
 
@@ -172,13 +163,4 @@ declare global {
 if (window.__POWERED_BY_QIANKUN__) {
   // Vite不需要设置__webpack_public_path__
   // 这是webpack特有的配置
-}
-
-// 将生命周期函数挂载到全局对象，供 qiankun 调用
-if (typeof window !== 'undefined') {
-  window.ReactProductManagement = {
-    bootstrap,
-    mount,
-    unmount
-  };
 }

@@ -13,6 +13,8 @@ import { observer } from 'mobx-react-lite';
 import Dashboard from './pages/Dashboard';
 import Analytics from './pages/Analytics';
 import Reports from './pages/Reports';
+import RealTimeData from './pages/RealTimeData';
+import Visualization from './pages/Visualization';
 
 // 导入布局组件
 import AppHeader from './components/Layout/AppHeader';
@@ -44,18 +46,18 @@ const App: React.FC = observer(() => {
       globalLogger.info('Received global event', event);
       
       switch (event.type) {
-        case EVENT_TYPES.THEME_CHANGE:
-          document.documentElement.setAttribute('data-theme', event.data.theme);
-          break;
-          
-        case EVENT_TYPES.USER_LOGOUT:
-          dashboardStore.reset();
-          message.info('用户已登出，数据已清理');
-          break;
-          
-        case EVENT_TYPES.LANGUAGE_CHANGE:
-          message.info(`语言已切换为: ${event.data.language}`);
-          break;
+    case EVENT_TYPES.THEME_CHANGE:
+      document.documentElement.setAttribute('data-theme', event.data.theme);
+      break;
+      
+    case EVENT_TYPES.USER_LOGOUT:
+      dashboardStore.reset();
+      message.info('用户已登出，数据已清理');
+      break;
+      
+    case EVENT_TYPES.LANGUAGE_CHANGE:
+      message.info(`语言已切换为: ${event.data.language}`);
+      break;;
           
         default:
           break;
@@ -69,7 +71,7 @@ const App: React.FC = observer(() => {
 
     // 发送应用就绪事件
     globalEventBus.emit({
-      type: EVENT_TYPES.APP_READY,
+      type: 'APP_READY',
       source: 'react-dashboard',
       timestamp: new Date().toISOString(),
       id: `app-ready-${Date.now()}`,
@@ -122,6 +124,8 @@ const App: React.FC = observer(() => {
                   <Route path="/dashboard" element={<Dashboard />} />
                   <Route path="/analytics" element={<Analytics />} />
                   <Route path="/reports" element={<Reports />} />
+                  <Route path="/realtime" element={<RealTimeData />} />
+                  <Route path="/visualization" element={<Visualization />} />
                   <Route path="*" element={<Navigate to="/dashboard" replace />} />
                 </Routes>
               </div>

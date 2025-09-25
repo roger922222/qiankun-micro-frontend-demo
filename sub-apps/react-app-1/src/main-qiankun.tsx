@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import App from './App';
 import 'antd/dist/reset.css';
+import './styles/index.css';
 
 let root: ReactDOM.Root | null = null;
 

@@ -48,8 +48,8 @@ const SimpleMicroAppContainer: React.FC<SimpleMicroAppContainerProps> = ({
         height: '100%',
         minHeight: '500px',
         background: '#f5f5f5',
-        display: 'flex',
-        alignItems: 'center',
+        // display: 'flex',
+        // alignItems: 'center',
         justifyContent: 'center',
         fontSize: '14px',
         color: '#666'

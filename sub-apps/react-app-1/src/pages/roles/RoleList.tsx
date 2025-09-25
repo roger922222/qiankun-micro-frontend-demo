@@ -37,7 +37,21 @@ const RoleList: React.FC = () => {
   const [form] = Form.useForm();
 
   const { data: roles = [], isLoading, refetch } = useGetRolesQuery();
-  const { data: permissions = [] } = useGetPermissionsQuery();
+  const { data: permissionsData = [] } = useGetPermissionsQuery();
+  
+  // 确保permissions是数组类型，添加防御性编程
+  const permissions = React.useMemo(() => {
+    if (Array.isArray(permissionsData)) {
+      return permissionsData;
+    }
+    // 如果API返回的是包装对象，尝试提取data字段
+    if (permissionsData && typeof permissionsData === 'object' && 'data' in permissionsData) {
+      const data = (permissionsData as any).data;
+      return Array.isArray(data) ? data : [];
+    }
+    return [];
+  }, [permissionsData]);
+  
   const [createRole] = useCreateRoleMutation();
   const [updateRole] = useUpdateRoleMutation();
   const [deleteRole] = useDeleteRoleMutation();
@@ -76,7 +90,7 @@ const RoleList: React.FC = () => {
       const values = await form.validateFields();
       const roleData = {
         ...values,
-        permissions: permissions.filter(p => values.permissions?.includes(p.id)),
+        permissions: Array.isArray(permissions) ? permissions.filter(p => values.permissions?.includes(p.id)) : [],
       };
 
       if (editingRole) {
@@ -99,11 +113,11 @@ const RoleList: React.FC = () => {
     form.resetFields();
   };
 
-  const permissionTreeData = permissions.map(permission => ({
+  const permissionTreeData = Array.isArray(permissions) ? permissions.map(permission => ({
     title: `${permission.name} (${permission.code})`,
     key: permission.id,
     value: permission.id,
-  }));
+  })) : [];
 
   const columns: ColumnsType<Role> = [
     {
@@ -131,8 +145,8 @@ const RoleList: React.FC = () => {
       width: 200,
       render: (permissions: Permission[]) => (
         <Space size="small" wrap>
-          {permissions?.map((permission) => (
-            <Tag key={permission.id} size="small">
+          {Array.isArray(permissions) && permissions.map((permission) => (
+            <Tag key={permission.id}>
               {permission.name}
             </Tag>
           ))}
@@ -270,7 +284,6 @@ const RoleList: React.FC = () => {
             <Tree
               checkable
               treeData={permissionTreeData}
-              placeholder="请选择权限"
             />
           </Form.Item>
         </Form>

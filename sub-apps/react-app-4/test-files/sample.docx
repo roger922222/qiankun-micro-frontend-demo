@@ -1,0 +1,23 @@
+Sample Word Document
+
+This is a test Word document for file preview functionality in React App 4.
+
+Key Features:
+- Real-time file preview
+- Support for multiple file formats
+- Interactive zoom and navigation controls
+- Responsive design
+
+Technical Implementation:
+The file preview component uses the following libraries:
+1. react-pdf for PDF files
+2. docx-preview for Word documents  
+3. xlsx for Excel spreadsheets
+
+Usage Instructions:
+1. Upload or select a file
+2. The preview will automatically render
+3. Use toolbar controls for navigation
+4. Zoom in/out as needed
+
+This document demonstrates the Word preview capability of the FilePreview component.

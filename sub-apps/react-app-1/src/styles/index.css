@@ -30,6 +30,93 @@ body {
   margin-bottom: 24px;
 }
 
+/* 自定义暗色菜单样式 - 确保文字清晰可见 */
+.custom-dark-menu {
+  background-color: #001529 !important;
+}
+
+/* 菜单项基础样式 */
+.custom-dark-menu .ant-menu-item {
+  color: rgba(255, 255, 255, 0.85) !important;
+  background-color: transparent !important;
+  border-radius: 6px !important;
+  margin: 4px 8px !important;
+  width: calc(100% - 16px) !important;
+}
+
+/* 菜单项悬停状态 */
+.custom-dark-menu .ant-menu-item:hover {
+  color: #fff !important;
+  background-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+/* 菜单项选中状态 */
+.custom-dark-menu .ant-menu-item-selected {
+  color: #fff !important;
+  background-color: #1677ff !important;
+  font-weight: 600 !important;
+}
+
+/* 选中项悬停状态 */
+.custom-dark-menu .ant-menu-item-selected:hover {
+  color: #fff !important;
+  background-color: #4096ff !important;
+}
+
+/* 菜单项内链接样式 */
+.custom-dark-menu .ant-menu-item a {
+  color: inherit !important;
+  text-decoration: none !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+/* 菜单项图标样式 */
+.custom-dark-menu .ant-menu-item-icon {
+  color: inherit !important;
+  font-size: 16px !important;
+  margin-right: 8px !important;
+}
+
+/* 折叠状态下的菜单项 */
+.custom-dark-menu.ant-menu-inline-collapsed .ant-menu-item {
+  color: rgba(255, 255, 255, 0.85) !important;
+  padding: 0 16px !important;
+  text-align: center !important;
+}
+
+.custom-dark-menu.ant-menu-inline-collapsed .ant-menu-item:hover {
+  color: #fff !important;
+  background-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+.custom-dark-menu.ant-menu-inline-collapsed .ant-menu-item-selected {
+  color: #fff !important;
+  background-color: #1677ff !important;
+}
+
+/* 折叠状态下的图标 */
+.custom-dark-menu.ant-menu-inline-collapsed .ant-menu-item-icon {
+  margin-right: 0 !important;
+  font-size: 18px !important;
+}
+
+/* 确保在暗色主题切换时也能正常显示 */
+.custom-dark-menu .ant-menu-item-active {
+  color: #fff !important;
+  background-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* 禁用状态的菜单项 */
+.custom-dark-menu .ant-menu-item-disabled {
+  color: rgba(255, 255, 255, 0.25) !important;
+}
+
+.custom-dark-menu .ant-menu-item-disabled:hover {
+  color: rgba(255, 255, 255, 0.25) !important;
+  background-color: transparent !important;
+}
+
 .page-content {
   background: #fff;
   padding: 24px;
@@ -57,4 +144,91 @@ body {
 .error-container p {
   color: #666;
   margin-bottom: 24px;
+}
+
+/* 自定义暗色菜单样式 - 确保文字清晰可见 */
+.custom-dark-menu {
+  background-color: #001529 !important;
+}
+
+/* 菜单项基础样式 */
+.custom-dark-menu .ant-menu-item {
+  color: rgba(255, 255, 255, 0.85) !important;
+  background-color: transparent !important;
+  border-radius: 6px !important;
+  margin: 4px 8px !important;
+  width: calc(100% - 16px) !important;
+}
+
+/* 菜单项悬停状态 */
+.custom-dark-menu .ant-menu-item:hover {
+  color: #fff !important;
+  background-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+/* 菜单项选中状态 */
+.custom-dark-menu .ant-menu-item-selected {
+  color: #fff !important;
+  background-color: #1677ff !important;
+  font-weight: 600 !important;
+}
+
+/* 选中项悬停状态 */
+.custom-dark-menu .ant-menu-item-selected:hover {
+  color: #fff !important;
+  background-color: #4096ff !important;
+}
+
+/* 菜单项内链接样式 */
+.custom-dark-menu .ant-menu-item a {
+  color: inherit !important;
+  text-decoration: none !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+/* 菜单项图标样式 */
+.custom-dark-menu .ant-menu-item-icon {
+  color: inherit !important;
+  font-size: 16px !important;
+  margin-right: 8px !important;
+}
+
+/* 折叠状态下的菜单项 */
+.custom-dark-menu.ant-menu-inline-collapsed .ant-menu-item {
+  color: rgba(255, 255, 255, 0.85) !important;
+  padding: 0 16px !important;
+  text-align: center !important;
+}
+
+.custom-dark-menu.ant-menu-inline-collapsed .ant-menu-item:hover {
+  color: #fff !important;
+  background-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+.custom-dark-menu.ant-menu-inline-collapsed .ant-menu-item-selected {
+  color: #fff !important;
+  background-color: #1677ff !important;
+}
+
+/* 折叠状态下的图标 */
+.custom-dark-menu.ant-menu-inline-collapsed .ant-menu-item-icon {
+  margin-right: 0 !important;
+  font-size: 18px !important;
+}
+
+/* 确保在暗色主题切换时也能正常显示 */
+.custom-dark-menu .ant-menu-item-active {
+  color: #fff !important;
+  background-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* 禁用状态的菜单项 */
+.custom-dark-menu .ant-menu-item-disabled {
+  color: rgba(255, 255, 255, 0.25) !important;
+}
+
+.custom-dark-menu .ant-menu-item-disabled:hover {
+  color: rgba(255, 255, 255, 0.25) !important;
+  background-color: transparent !important;
 }

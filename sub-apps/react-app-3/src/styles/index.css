@@ -1,0 +1,342 @@
+/**
+ * 订单管理系统全局样式
+ */
+
+/* 重置和基础样式 */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB',
+    'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, sans-serif, 'Apple Color Emoji',
+    'Segoe UI Emoji', 'Segoe UI Symbol';
+  font-size: 14px;
+  line-height: 1.5715;
+  color: rgba(0, 0, 0, 0.85);
+  background-color: #f0f2f5;
+}
+
+/* 应用容器样式 */
+#root {
+  min-height: 100vh;
+}
+
+/* 订单管理应用特定样式 */
+.order-app-layout {
+  min-height: 100vh;
+}
+
+.order-app-content {
+  background: #fff;
+}
+
+.order-app-main {
+  padding: 24px;
+  background: #f0f2f5;
+  min-height: calc(100vh - 64px - 70px);
+}
+
+.order-app-container {
+  background: #fff;
+  border-radius: 6px;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03), 0 1px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px 0 rgba(0, 0, 0, 0.02);
+  padding: 24px;
+  min-height: calc(100vh - 64px - 70px - 48px);
+}
+
+/* 订单卡片样式 */
+.order-card {
+  margin-bottom: 16px;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.order-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+}
+
+.order-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.order-card-content {
+  padding: 20px;
+}
+
+.order-card-footer {
+  padding: 16px 20px;
+  border-top: 1px solid #f0f0f0;
+  background: #fafafa;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* 订单状态样式 */
+.order-status-pending {
+  color: #faad14;
+  background: #fff7e6;
+  border-color: #ffd591;
+}
+
+.order-status-confirmed {
+  color: #1890ff;
+  background: #e6f7ff;
+  border-color: #91d5ff;
+}
+
+.order-status-processing {
+  color: #722ed1;
+  background: #f9f0ff;
+  border-color: #d3adf7;
+}
+
+.order-status-shipped {
+  color: #13c2c2;
+  background: #e6fffb;
+  border-color: #87e8de;
+}
+
+.order-status-delivered {
+  color: #52c41a;
+  background: #f6ffed;
+  border-color: #b7eb8f;
+}
+
+.order-status-cancelled {
+  color: #f5222d;
+  background: #fff2f0;
+  border-color: #ffccc7;
+}
+
+/* 支付状态样式 */
+.payment-status-unpaid {
+  color: #fa8c16;
+  background: #fff7e6;
+  border-color: #ffd591;
+}
+
+.payment-status-paid {
+  color: #52c41a;
+  background: #f6ffed;
+  border-color: #b7eb8f;
+}
+
+.payment-status-refunded {
+  color: #722ed1;
+  background: #f9f0ff;
+  border-color: #d3adf7;
+}
+
+/* 订单项目样式 */
+.order-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.order-item:last-child {
+  border-bottom: none;
+}
+
+.order-item-image {
+  width: 60px;
+  height: 60px;
+  border-radius: 4px;
+  margin-right: 12px;
+  object-fit: cover;
+  background: #f5f5f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #bfbfbf;
+}
+
+.order-item-info {
+  flex: 1;
+}
+
+.order-item-name {
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.85);
+  margin-bottom: 4px;
+}
+
+.order-item-spec {
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.45);
+  margin-bottom: 4px;
+}
+
+.order-item-price {
+  font-weight: 500;
+  color: #f5222d;
+}
+
+/* 地址样式 */
+.address-card {
+  background: #fafafa;
+  border: 1px solid #f0f0f0;
+  border-radius: 6px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.address-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.address-name {
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.85);
+}
+
+.address-phone {
+  color: rgba(0, 0, 0, 0.65);
+  font-size: 13px;
+}
+
+.address-detail {
+  color: rgba(0, 0, 0, 0.65);
+  line-height: 1.4;
+}
+
+/* 统计卡片样式 */
+.stats-card {
+  text-align: center;
+  padding: 20px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  margin-bottom: 16px;
+}
+
+.stats-card-number {
+  font-size: 28px;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+.stats-card-label {
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+/* 搜索和筛选样式 */
+.search-filter-bar {
+  background: #fff;
+  padding: 16px;
+  border-radius: 6px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.filter-item {
+  margin-bottom: 16px;
+}
+
+.filter-item:last-child {
+  margin-bottom: 0;
+}
+
+.filter-label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.85);
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .order-app-main {
+    padding: 16px;
+  }
+  
+  .order-app-container {
+    padding: 16px;
+    margin: 0;
+    border-radius: 0;
+  }
+  
+  .order-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  
+  .order-card-footer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  
+  .order-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .order-item-image {
+    margin-bottom: 8px;
+    margin-right: 0;
+  }
+}
+
+/* 动画效果 */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* 加载状态 */
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+}
+
+/* 空状态 */
+.empty-container {
+  text-align: center;
+  padding: 40px 20px;
+  color: rgba(0, 0, 0, 0.45);
+}
+
+.empty-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  color: rgba(0, 0, 0, 0.25);
+}
+
+.empty-text {
+  font-size: 16px;
+  margin-bottom: 16px;
+}
+
+.empty-description {
+  font-size: 14px;
+  color: rgba(0, 0, 0, 0.45);
+}

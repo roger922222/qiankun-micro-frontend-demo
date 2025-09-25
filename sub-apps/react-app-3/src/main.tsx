@@ -1,10 +1,11 @@
 /**
  * React订单管理子应用入口文件
  * 支持qiankun微前端框架和独立运行
+ * 与react-app-2保持一致的配置模式
  */
 
 import React from 'react';
-import ReactDOM from 'react-dom/client';
+import * as ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { ConfigProvider } from 'antd';
 import zhCN from 'antd/locale/zh_CN';
@@ -23,23 +24,63 @@ import ErrorFallback from './components/ErrorFallback';
 import { OrderProvider } from './context/OrderContext';
 
 // 导入共享库
-import { globalLogger } from '@shared/utils/logger';
+import { globalLogger } from './shared-stub';
+
+// 导入qiankun插件辅助函数
+import { createLifecyle, getMicroApp } from 'vite-plugin-legacy-qiankun';
+
+// 导入导航集成
+// import { createMicroAppNavigation } from '@shared/communication/navigation/micro-app-integration';
+
+// 全局变量保存 React root 实例，避免重复创建
+let reactRoot: any = null;
+
+// 创建导航API实例
+// const navigationAPI = createMicroAppNavigation({
+//   appName: 'react-app-3',
+//   basename: window.__POWERED_BY_QIANKUN__ ? '/order-management' : '/',
+//   debug: process.env.NODE_ENV === 'development',
+//   enableParameterReceiving: true,
+//   enableCrossAppNavigation: true,
+//   onNavigationReceived: (event) => {
+//     console.log('[ReactApp3] Navigation event received:', event);
+//   },
+//   onParameterReceived: (event) => {
+//     console.log('[ReactApp3] Parameters received:', event);
+//   },
+//   onRouteChange: (event) => {
+//     console.log('[ReactApp3] Route changed:', event);
+//   }
+// });
+
+// 将导航API挂载到全局，供组件使用
+// (window as any).__MICRO_APP_NAVIGATION__ = navigationAPI;
 
 /**
  * 渲染应用
  */
 function render(props?: any) {
   const { container, routerBase } = props || {};
-  const domElement = container ? container.querySelector('#root') : document.getElementById('root');
+  
+  // 在qiankun环境中，直接使用传入的容器，避免错误的querySelector
+  let domElement: HTMLElement | null;
+  if (window.__POWERED_BY_QIANKUN__) {
+    domElement = container;
+  } else {
+    domElement = document.getElementById('root');
+  }
   
   if (!domElement) {
-    globalLogger.error('Root element not found');
+    globalLogger.error('Root element not found', new Error('Root element not found'), { container, hasQiankun: !!window.__POWERED_BY_QIANKUN__ });
     return;
   }
 
-  const root = ReactDOM.createRoot(domElement);
+  // 只在第一次或 root 不存在时创建，避免重复创建
+  if (!reactRoot) {
+    reactRoot = ReactDOM.createRoot(domElement);
+  }
 
-  root.render(
+  reactRoot.render(
     <React.StrictMode>
       <ErrorBoundary
         FallbackComponent={ErrorFallback}
@@ -61,7 +102,7 @@ function render(props?: any) {
                 }
               }}
             >
-              <BrowserRouter basename={routerBase || '/order-management'}>
+              <BrowserRouter basename={routerBase || (window.__POWERED_BY_QIANKUN__ ? '/order-management' : '/')}>
                 <App />
               </BrowserRouter>
             </ConfigProvider>
@@ -71,48 +112,49 @@ function render(props?: any) {
     </React.StrictMode>
   );
 
-  return root;
+  return reactRoot;
 }
 
-/**
- * qiankun生命周期 - 启动
- */
-export async function bootstrap() {
-  globalLogger.info('React Order Management app bootstrapped');
-}
+// 使用插件提供的辅助函数
+const microApp = getMicroApp('react-order-management');
 
-/**
- * qiankun生命周期 - 挂载
- */
-export async function mount(props: any) {
-  globalLogger.info('React Order Management app mounting', props);
-  render(props);
-}
-
-/**
- * qiankun生命周期 - 卸载
- */
-export async function unmount(props: any) {
-  globalLogger.info('React Order Management app unmounting');
-  const { container } = props;
-  const domElement = container ? container.querySelector('#root') : document.getElementById('root');
-  
-  if (domElement) {
-    const root = ReactDOM.createRoot(domElement);
-    root.unmount();
-  }
-}
-
-/**
- * 独立运行模式
- */
-if (!window.__POWERED_BY_QIANKUN__) {
+// 判断是否在qiankun环境下运行
+if (microApp.__POWERED_BY_QIANKUN__) {
+  // 使用createLifecyle导出生命周期函数
+  createLifecyle('react-order-management', {
+    bootstrap() {
+      globalLogger.info('React Order Management app bootstrapped');
+    },
+    mount(props: any) {
+      globalLogger.info('React Order Management app mounting', props);
+      
+      // 验证挂载参数
+      if (!props || !props.container) {
+        const error = new Error('Invalid mount props: container is required');
+        globalLogger.error('Mount failed', error, { props });
+        throw error;
+      }
+      
+      render(props);
+    },
+    unmount() {
+      globalLogger.info('React Order Management app unmounting');
+      
+      // 使用保存的 root 实例进行卸载
+      if (reactRoot) {
+        reactRoot.unmount();
+        reactRoot = null;
+      }
+    },
+  });
+} else {
+  // 独立运行模式
   render();
 }
 
 // 开发模式下的热更新支持
-if (import.meta.hot) {
-  import.meta.hot.accept();
+if ((import.meta as any).hot) {
+  (import.meta as any).hot.accept();
 }
 
 // 设置全局变量供qiankun使用
@@ -125,6 +167,6 @@ declare global {
 
 // 动态设置publicPath
 if (window.__POWERED_BY_QIANKUN__) {
-  // eslint-disable-next-line no-undef
-  __webpack_public_path__ = window.__INJECTED_PUBLIC_PATH_BY_QIANKUN__;
+  // Vite不需要设置__webpack_public_path__
+  // 这是webpack特有的配置
 }

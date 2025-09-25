@@ -1,6 +1,6 @@
 import React from 'react';
 import { ConfigProvider, Layout, Menu, theme, Button, Dropdown, Space } from 'antd';
-import { Routes, Route, Link, useLocation, Location } from 'react-router-dom';
+import { Routes, Route, useLocation, Location, useNavigate } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import { store } from './store';
 import UserRoutes from './pages/users';
@@ -26,11 +26,14 @@ const { Header, Sider, Content } = Layout;
 const App: React.FC = () => {
   // 添加安全检查和错误处理
   let location: Location | { pathname: string };
+  let navigate: any;
   try {
     location = useLocation();
+    navigate = useNavigate();
   } catch (error) {
     console.warn('useLocation hook not available, using fallback');
     location = { pathname: '/users' };
+    navigate = () => {};
   }
   
   const [collapsed, setCollapsed] = React.useState(false);
@@ -47,6 +50,19 @@ const App: React.FC = () => {
     goToSystemMonitor,
     goToMainApp
   } = useCrossAppNavigation();
+
+  // 自定义导航处理函数，确保URL更新
+  const handleInternalNavigation = React.useCallback((path: string) => {
+    console.log('[App] Navigating to:', path);
+    navigate(path);
+    
+    // 在微前端环境中，手动更新浏览器地址栏
+    if (window.__POWERED_BY_QIANKUN__) {
+      const fullPath = `/user-management${path}`;
+      console.log('[App] Updating browser URL to:', fullPath);
+      window.history.pushState(null, '', fullPath);
+    }
+  }, [navigate]);
 
   // 使用导航参数
   const { currentParameters, clearReceivedParameters } = useNavigationParameters();
@@ -99,27 +115,32 @@ const App: React.FC = () => {
     {
       key: '/users',
       icon: <UserOutlined />,
-      label: <Link to="/users">用户管理</Link>,
+      label: '用户管理',
+      onClick: () => handleInternalNavigation('/users'),
     },
     {
       key: '/roles',
       icon: <TeamOutlined />,
-      label: <Link to="/roles">角色管理</Link>,
+      label: '角色管理',
+      onClick: () => handleInternalNavigation('/roles'),
     },
     {
       key: '/permissions',
       icon: <SafetyOutlined />,
-      label: <Link to="/permissions">权限管理</Link>,
+      label: '权限管理',
+      onClick: () => handleInternalNavigation('/permissions'),
     },
     {
       key: '/logs',
       icon: <FileTextOutlined />,
-      label: <Link to="/logs">操作日志</Link>,
+      label: '操作日志',
+      onClick: () => handleInternalNavigation('/logs'),
     },
     {
       key: '/communication-demo',
       icon: <ApiOutlined />,
-      label: <Link to="/communication-demo">通信演示</Link>,
+      label: '通信演示',
+      onClick: () => handleInternalNavigation('/communication-demo'),
     },
   ];
 
@@ -140,6 +161,11 @@ const App: React.FC = () => {
               selectedKeys={[selectedKey]}
               mode="inline"
               items={menuItems}
+              style={{
+                backgroundColor: '#001529',
+                borderRight: 'none'
+              }}
+              className="custom-dark-menu"
             />
           </Sider>
           <Layout>

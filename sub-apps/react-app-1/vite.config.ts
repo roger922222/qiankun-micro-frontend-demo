@@ -40,7 +40,7 @@ export default defineConfig({
     },
   },
   
-  base: process.env.NODE_ENV === 'production' ? '/react-user-management/' : '/',
+  base: process.env.NODE_ENV === 'production' ? '/user-management/' : '/',
   
   resolve: {
     alias: {
@@ -52,5 +52,9 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: true,
+    rollupOptions: {
+      input: 'index.html',
+      external: [],
+    },
   },
 });

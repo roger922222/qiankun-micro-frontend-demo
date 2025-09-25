@@ -247,7 +247,7 @@ onMounted(() => {
   };
 
   globalEventBus.onAny(handleEvent);
-  globalStateManager.subscribe(handleStateChange);
+  const unsubscribeState = globalStateManager.subscribe(handleStateChange);
 
   // 初始化状态
   globalState.value = globalStateManager.getState();
@@ -264,7 +264,7 @@ onMounted(() => {
   // 清理函数
   const cleanup = () => {
     globalEventBus.offAny(handleEvent);
-    globalStateManager.unsubscribe(handleStateChange);
+    unsubscribeState(); // 使用subscribe方法返回的取消订阅函数
   };
 
   onUnmounted(cleanup);

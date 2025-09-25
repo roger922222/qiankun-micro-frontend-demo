@@ -3,39 +3,56 @@
  * 使用Context API进行状态管理
  */
 
-import React, { useEffect } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
-import { Layout, message } from 'antd';
+import React, { useEffect, useState } from 'react';
+import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
+import { Layout, message, Typography, Menu } from 'antd';
 import { Helmet } from 'react-helmet-async';
+import {
+  ShoppingCartOutlined,
+  BarChartOutlined,
+  FileTextOutlined,
+  DashboardOutlined,
+  UnorderedListOutlined,
+  PlusOutlined,
+  DollarOutlined,
+  UserOutlined
+} from '@ant-design/icons';
 
 // 导入页面组件
 import OrderList from './pages/OrderList';
 import OrderDetail from './pages/OrderDetail';
 import OrderStats from './pages/OrderStats';
+import OrderTracking from './pages/OrderTracking';
+import PaymentManagement from './pages/PaymentManagement';
+import OrderCreate from './pages/OrderCreate';
+import CustomerManagement from './pages/CustomerManagement';
+import ReportsAnalytics from './pages/ReportsAnalytics';
 
 // 导入布局组件
-import AppHeader from './components/Layout/AppHeader';
-import AppSidebar from './components/Layout/AppSidebar';
-import AppFooter from './components/Layout/AppFooter';
+// import AppHeader from './components/Layout/AppHeader';
+// import AppSidebar from './components/Layout/AppSidebar';
+// import AppFooter from './components/Layout/AppFooter';
 
 // 导入样式
 import './styles/App.css';
 
 // 导入共享库
-import { globalEventBus } from '@shared/communication/event-bus';
-import { globalLogger } from '@shared/utils/logger';
-import { EVENT_TYPES } from '@shared/types/events';
+import { globalEventBus, globalLogger, EVENT_TYPES } from './shared-stub';
 
 // 导入Context
 import { useOrderContext } from './context/OrderContext';
 
-const { Content } = Layout;
+const { Content, Header, Sider } = Layout;
+const { Title } = Typography;
 
 /**
  * 主应用组件
  */
 const App: React.FC = () => {
   const { actions } = useOrderContext();
+  const [collapsed, setCollapsed] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     globalLogger.info('Order Management App mounted');
@@ -100,7 +117,10 @@ const App: React.FC = () => {
     // 示例订单数据
     const sampleOrders = [
       {
+        id: 'order_1',
         orderNumber: 'ORD-2024-001',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
         customerId: 'cust_1',
         customerName: '张三',
         customerEmail: 'zhangsan@example.com',
@@ -146,7 +166,10 @@ const App: React.FC = () => {
         notes: '请尽快发货'
       },
       {
+        id: 'order_2',
         orderNumber: 'ORD-2024-002',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
         customerId: 'cust_2',
         customerName: '李四',
         customerEmail: 'lisi@example.com',
@@ -195,6 +218,45 @@ const App: React.FC = () => {
     globalLogger.info('Sample order data initialized', { count: sampleOrders.length });
   };
 
+  // 菜单配置
+  const menuItems = [
+    {
+      key: '/orders',
+      icon: <UnorderedListOutlined />,
+      label: '订单列表',
+    },
+    {
+      key: '/create-order',
+      icon: <PlusOutlined />,
+      label: '创建订单',
+    },
+    {
+      key: '/payment',
+      icon: <DollarOutlined />,
+      label: '支付管理',
+    },
+    {
+      key: '/customers',
+      icon: <UserOutlined />,
+      label: '客户管理',
+    },
+    {
+      key: '/reports',
+      icon: <BarChartOutlined />,
+      label: '报表分析',
+    },
+    {
+      key: '/stats',
+      icon: <DashboardOutlined />,
+      label: '订单统计',
+    },
+  ];
+
+  // 处理菜单点击
+  const handleMenuClick = ({ key }: { key: string }) => {
+    navigate(key);
+  };
+
   return (
     <>
       <Helmet>
@@ -202,27 +264,46 @@ const App: React.FC = () => {
         <meta name="description" content="基于React和Context API的订单管理系统" />
       </Helmet>
 
-      <Layout className="order-app-layout">
-        <AppHeader />
+      <Layout style={{ minHeight: '100vh' }}>
+        <Header style={{ background: '#1890ff', padding: '0 24px', display: 'flex', alignItems: 'center' }}>
+          <Title level={3} style={{ color: 'white', margin: 0 }}>
+            订单管理系统
+          </Title>
+        </Header>
         
         <Layout>
-          <AppSidebar />
+          <Sider
+            collapsible
+            collapsed={collapsed}
+            onCollapse={setCollapsed}
+            theme="light"
+            style={{ background: '#fff' }}
+          >
+            <Menu
+              mode="inline"
+              selectedKeys={[location.pathname]}
+              items={menuItems}
+              onClick={handleMenuClick}
+              style={{ height: '100%', borderRight: 0 }}
+            />
+          </Sider>
           
-          <Layout className="order-app-content">
-            <Content className="order-app-main">
-              <div className="order-app-container">
-                <Routes>
-                  <Route path="/" element={<Navigate to="/orders" replace />} />
-                  <Route path="/orders" element={<OrderList />} />
-                  <Route path="/orders/:id" element={<OrderDetail />} />
-                  <Route path="/stats" element={<OrderStats />} />
-                  <Route path="*" element={<Navigate to="/orders" replace />} />
-                </Routes>
-              </div>
-            </Content>
-            
-            <AppFooter />
-          </Layout>
+          <Content style={{ padding: '24px', background: '#f0f2f5' }}>
+            <div style={{ background: '#fff', padding: '24px', borderRadius: '8px' }}>
+              <Routes>
+                <Route path="/" element={<Navigate to="/orders" replace />} />
+                <Route path="/orders" element={<OrderList />} />
+                <Route path="/orders/:id" element={<OrderDetail />} />
+                <Route path="/orders/:id/tracking" element={<OrderTracking />} />
+                <Route path="/create-order" element={<OrderCreate />} />
+                <Route path="/payment" element={<PaymentManagement />} />
+                <Route path="/customers" element={<CustomerManagement />} />
+                <Route path="/reports" element={<ReportsAnalytics />} />
+                <Route path="/stats" element={<OrderStats />} />
+                <Route path="*" element={<Navigate to="/orders" replace />} />
+              </Routes>
+            </div>
+          </Content>
         </Layout>
       </Layout>
     </>

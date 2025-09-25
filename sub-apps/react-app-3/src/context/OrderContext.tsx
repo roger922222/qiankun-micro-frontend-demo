@@ -4,7 +4,7 @@
  */
 
 import React, { createContext, useContext, useReducer, ReactNode } from 'react';
-import { globalLogger } from '@shared/utils/logger';
+import { globalLogger } from '../shared-stub';
 
 // 订单接口定义
 export interface Order {

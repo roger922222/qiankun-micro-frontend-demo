@@ -1,0 +1,88 @@
+/**
+ * 订单管理应用组件样式
+ */
+
+/* 应用布局样式 */
+.order-app-layout {
+  min-height: 100vh;
+  background: #f0f2f5;
+}
+
+.order-app-content {
+  background: #fff;
+}
+
+.order-app-main {
+  padding: 24px;
+  background: #f0f2f5;
+  min-height: calc(100vh - 64px - 70px);
+}
+
+.order-app-container {
+  background: #fff;
+  border-radius: 6px;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03), 0 1px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px 0 rgba(0, 0, 0, 0.02);
+  padding: 24px;
+  min-height: calc(100vh - 64px - 70px - 48px);
+}
+
+/* 菜单样式 */
+.ant-menu-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px !important;
+  margin: 4px 8px !important;
+  border-radius: 6px !important;
+  height: auto !important;
+  line-height: 1.5 !important;
+}
+
+.ant-menu-item:hover {
+  background-color: #e6f7ff !important;
+  color: #1890ff !important;
+}
+
+.ant-menu-item-selected {
+  background-color: #1890ff !important;
+  color: #fff !important;
+}
+
+.ant-menu-item-selected:hover {
+  background-color: #40a9ff !important;
+  color: #fff !important;
+}
+
+.ant-menu-item .anticon {
+  font-size: 16px;
+  margin-right: 8px;
+}
+
+/* 侧边栏样式 */
+.ant-layout-sider {
+  box-shadow: 2px 0 8px 0 rgba(29, 35, 41, 0.05);
+}
+
+.ant-layout-sider-collapsed .ant-menu-item {
+  padding: 12px 16px !important;
+  text-align: center;
+}
+
+/* Header样式 */
+.ant-layout-header {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  z-index: 10;
+  position: relative;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .order-app-main {
+    padding: 16px;
+  }
+  
+  .order-app-container {
+    padding: 16px;
+    margin: 0;
+    border-radius: 0;
+  }
+}

@@ -105,7 +105,7 @@ const CommunicationDemo: React.FC = () => {
 
     // 注册监听器
     globalEventBus.onAny(handleEvent);
-    globalStateManager.subscribe(handleStateChange);
+    const unsubscribeState = globalStateManager.subscribe(handleStateChange);
     globalHistoryService.onHistoryChange(handleNavigationChange);
 
     // 初始化数据
@@ -133,7 +133,7 @@ const CommunicationDemo: React.FC = () => {
 
     return () => {
       globalEventBus.offAny(handleEvent);
-      globalStateManager.unsubscribe(handleStateChange);
+      unsubscribeState(); // 使用subscribe方法返回的取消订阅函数
       clearInterval(performanceInterval);
       clearInterval(realtimeInterval);
     };

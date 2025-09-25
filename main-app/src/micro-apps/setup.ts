@@ -32,7 +32,7 @@ export const microAppConfigs: MicroAppConfig[] = [
   },
   {
     name: 'react-product-management',
-    entry: 'http://localhost:3002',
+    entry: 'http://localhost:3012',
     container: '#micro-app-react-product-management',
     activeRule: '/product-management',
     props: {
@@ -44,7 +44,7 @@ export const microAppConfigs: MicroAppConfig[] = [
   },
   {
     name: 'react-order-management',
-    entry: 'http://localhost:3003',
+    entry: 'http://localhost:3003/',
     container: '#micro-app-react-order-management',
     activeRule: '/order-management',
     props: {
@@ -56,7 +56,7 @@ export const microAppConfigs: MicroAppConfig[] = [
   },
   {
     name: 'react-dashboard',
-    entry: 'http://localhost:3004',
+    entry: 'http://localhost:3004/',
     container: '#micro-app-react-dashboard',
     activeRule: '/data-dashboard',
     props: {
@@ -175,8 +175,6 @@ const lifecycleHooks = {
         });
         
         if (container) {
-          globalLogger.info(`✓ 容器找到 - 应用: ${app.name}, 容器: ${app.container}, 耗时: ${elapsedTime}ms`);
-          
           // 额外验证容器状态
           const containerRect = container.getBoundingClientRect();
           globalLogger.info(`容器状态验证 - 应用: ${app.name}`, {
@@ -357,7 +355,7 @@ function setupGlobalErrorHandler() {
  */
 function getAppEntry(name: string, defaultEntry: string): string {
   // 开发环境下使用本地地址
-  if (process.env.NODE_ENV === 'development') {
+  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
     return defaultEntry;
   }
   

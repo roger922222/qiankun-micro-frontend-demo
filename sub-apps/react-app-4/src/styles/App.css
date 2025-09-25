@@ -1,0 +1,49 @@
+/* Dashboard App 样式 */
+.dashboard-app-layout {
+  min-height: 100vh;
+}
+
+.dashboard-app-content {
+  margin: 0;
+}
+
+.dashboard-app-main {
+  margin: 0;
+  padding: 0;
+  min-height: calc(100vh - 64px - 69px); /* 减去 header 和 footer 高度 */
+  background: #f0f2f5;
+}
+
+.dashboard-app-container {
+  padding: 0;
+  background: #f0f2f5;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .dashboard-app-container {
+    padding: 12px;
+  }
+}
+
+/* 卡片样式优化 */
+.ant-card {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border-radius: 8px;
+}
+
+.ant-card-head-title {
+  font-weight: 600;
+}
+
+/* 统计数字样式 */
+.ant-statistic-content {
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.ant-statistic-title {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 8px;
+}

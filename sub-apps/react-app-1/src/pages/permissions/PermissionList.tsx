@@ -6,7 +6,20 @@ import type { ColumnsType } from 'antd/es/table';
 import type { Permission } from '@/types';
 
 const PermissionList: React.FC = () => {
-  const { data: permissions = [], isLoading, refetch } = useGetPermissionsQuery();
+  const { data: permissionsData = [], isLoading, refetch } = useGetPermissionsQuery();
+  
+  // 确保permissions是数组类型，添加防御性编程
+  const permissions = React.useMemo(() => {
+    if (Array.isArray(permissionsData)) {
+      return permissionsData;
+    }
+    // 如果API返回的是包装对象，尝试提取data字段
+    if (permissionsData && typeof permissionsData === 'object' && 'data' in permissionsData) {
+      const data = (permissionsData as any).data;
+      return Array.isArray(data) ? data : [];
+    }
+    return [];
+  }, [permissionsData]);
 
   const columns: ColumnsType<Permission> = [
     {

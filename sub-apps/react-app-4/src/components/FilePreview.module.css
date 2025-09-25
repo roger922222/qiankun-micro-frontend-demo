@@ -1,0 +1,257 @@
+/* PDF 预览样式 */
+.pdfContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  background: #f5f5f5;
+  min-height: 100%;
+}
+
+.pdfPage {
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+/* Word 预览样式 */
+.docxPreviewContainer {
+  background: #fff;
+  padding: 30px;
+  border: 1px solid #d9d9d9;
+  border-radius: 8px;
+  min-height: 400px;
+  font-family: "Times New Roman", serif;
+  line-height: 1.8;
+}
+
+.docxPreviewContainer h1,
+.docxPreviewContainer h2,
+.docxPreviewContainer h3,
+.docxPreviewContainer h4,
+.docxPreviewContainer h5,
+.docxPreviewContainer h6 {
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+  font-weight: bold;
+}
+
+.docxPreviewContainer p {
+  margin-bottom: 1em;
+  text-align: justify;
+}
+
+.docxPreviewContainer table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1em 0;
+}
+
+.docxPreviewContainer table th,
+.docxPreviewContainer table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+
+.docxPreviewContainer table th {
+  background-color: #f5f5f5;
+  font-weight: bold;
+}
+
+.docxPreviewContainer img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 1em auto;
+}
+
+/* Excel 预览样式 */
+.excelContainer {
+  padding: 20px;
+}
+
+.excelSheetTabs {
+  margin-bottom: 16px;
+  padding: 8px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.excelTable {
+  background: #fff;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.excelTable .ant-table-thead > tr > th {
+  background: #fafafa;
+  font-weight: 600;
+}
+
+.excelTable .ant-table-tbody > tr:hover > td {
+  background: #f5f5f5;
+}
+
+/* CSV 预览样式 */
+.csvContainer {
+  padding: 20px;
+}
+
+.csvInfo {
+  margin-bottom: 16px;
+  padding: 8px 16px;
+  background: #f8f9fa;
+  border-radius: 6px;
+  border-left: 4px solid #1890ff;
+}
+
+.csvTable {
+  background: #fff;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.csvTable .ant-table-thead > tr > th {
+  background: #fafafa;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.csvTable .ant-table-thead > tr > th:hover {
+  background: #e6f7ff;
+}
+
+.csvTable .ant-table-tbody > tr:hover > td {
+  background: #f5f5f5;
+}
+
+.csvControls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* 表格行样式 */
+.evenRow {
+  background: #fafafa;
+}
+
+.oddRow {
+  background: #ffffff;
+}
+
+/* 工具栏样式 */
+.toolbar {
+  padding: 12px 16px;
+  border-bottom: 1px solid #f0f0f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #fafafa;
+  min-height: 60px;
+}
+
+.toolbarLeft {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.toolbarRight {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.zoomControl {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.zoomPercent {
+  margin: 0 8px;
+  min-width: 60px;
+  text-align: center;
+  font-size: 12px;
+}
+
+/* 加载状态样式 */
+.loadingContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  min-height: 300px;
+}
+
+.loadingText {
+  margin-top: 16px;
+  color: #666;
+}
+
+/* 错误状态样式 */
+.errorContainer {
+  margin: 20px;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .toolbar {
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px;
+  }
+  
+  .toolbarLeft,
+  .toolbarRight {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .pdfContainer {
+    padding: 10px;
+  }
+  
+  .docxPreviewContainer {
+    padding: 20px;
+    font-size: 14px;
+  }
+  
+  .excelContainer,
+  .csvContainer {
+    padding: 10px;
+  }
+  
+  .csvControls {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+}
+
+/* 滚动条样式 */
+.pdfContainer::-webkit-scrollbar,
+.docxPreviewContainer::-webkit-scrollbar {
+  width: 8px;
+}
+
+.pdfContainer::-webkit-scrollbar-track,
+.docxPreviewContainer::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.pdfContainer::-webkit-scrollbar-thumb,
+.docxPreviewContainer::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+.pdfContainer::-webkit-scrollbar-thumb:hover,
+.docxPreviewContainer::-webkit-scrollbar-thumb:hover {
+  background: #a1a1a1;
+}

@@ -18,13 +18,19 @@ export const permissionApi = createApi({
     // 获取权限列表
     getPermissions: builder.query<Permission[], void>({
       query: () => 'permissions',
+      transformResponse: (response: { success: boolean; data: Permission[] }) => {
+        return response?.data || [];
+      },
       providesTags: ['PermissionList'],
     }),
     
     // 获取单个权限
     getPermissionById: builder.query<Permission, string>({
       query: (id) => `permissions/${id}`,
-      providesTags: (result, error, id) => [{ type: 'Permission', id }],
+      transformResponse: (response: { success: boolean; data: Permission }) => {
+        return response?.data;
+      },
+      providesTags: (_, __, id) => [{ type: 'Permission', id }],
     }),
   }),
 });

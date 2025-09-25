@@ -1,55 +1,56 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import path from 'path';
+import legacy from '@vitejs/plugin-legacy';
+import { legacyQiankun } from 'vite-plugin-legacy-qiankun';
+import { resolve } from 'path';
 
-// https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    legacy({
+      targets: ['defaults', 'not IE 11'],
+    }),
+    legacyQiankun({
+      name: 'react-order-management',
+      devSandbox: true,
+    }),
+  ],
   
-  // 开发服务器配置
   server: {
     port: 3003,
+    host: '0.0.0.0',
     cors: true,
-    origin: 'http://localhost:3003'
-  },
-  
-  // 构建配置
-  build: {
-    target: 'es2015',
-    lib: {
-      entry: path.resolve(__dirname, 'src/main.tsx'),
-      name: 'ReactOrderManagement',
-      fileName: 'react-order-management',
-      formats: ['umd']
+    headers: {
+      'Access-Control-Allow-Origin': '*',
     },
-    rollupOptions: {
-      external: ['react', 'react-dom'],
-      output: {
-        globals: {
-          react: 'React',
-          'react-dom': 'ReactDOM'
-        }
-      }
-    }
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3003',
+        changeOrigin: true,
+      },
+    },
   },
   
-  // 路径别名
+  preview: {
+    port: 3003,
+    host: '0.0.0.0',
+    cors: true,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+    },
+  },
+  
+  base: process.env.NODE_ENV === 'production' ? '/react-order-management/' : '/',
+  
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, 'src'),
-      '@shared': path.resolve(__dirname, '../../shared/src')
-    }
+      '@': resolve(__dirname, 'src'),
+      '@shared': resolve(__dirname, '../../shared'),
+    },
   },
   
-  // CSS配置
-  css: {
-    modules: {
-      localsConvention: 'camelCase'
-    }
+  build: {
+    outDir: 'dist',
+    sourcemap: true,
   },
-  
-  // 定义全局变量
-  define: {
-    __DEV__: JSON.stringify(process.env.NODE_ENV === 'development')
-  }
 });

@@ -62,7 +62,7 @@ const CommunicationDemo: React.FC = () => {
     };
 
     globalEventBus.onAny(handleEvent);
-    globalStateManager.subscribe(handleStateChange);
+    const unsubscribeState = globalStateManager.subscribe(handleStateChange);
 
     // 初始化状态
     setGlobalState(globalStateManager.getState());
@@ -78,7 +78,7 @@ const CommunicationDemo: React.FC = () => {
 
     return () => {
       globalEventBus.offAny(handleEvent);
-      globalStateManager.unsubscribe(handleStateChange);
+      unsubscribeState(); // 使用subscribe方法返回的取消订阅函数
     };
   }, []);
 

@@ -15,6 +15,7 @@ declare const process: any;
 export class EventBus implements EventBusInterface {
   private listeners: Map<string, Set<EventHandler>> = new Map();
   private onceListeners: Map<string, Set<EventHandler>> = new Map();
+  private anyListeners: Set<EventHandler> = new Set(); // 监听所有事件的处理器
   private maxListeners: number = 100;
   private debug: boolean = false;
   private middlewareManager: EventMiddlewareManager;
@@ -58,6 +59,15 @@ export class EventBus implements EventBusInterface {
    */
   private emitProcessedEvent<T extends BaseEvent>(event: T): void {
     const { type } = event;
+
+    // 触发监听所有事件的处理器
+    this.anyListeners.forEach(handler => {
+      try {
+        handler(event);
+      } catch (error) {
+        console.error(`[EventBus] Error in any event handler for ${type}:`, error);
+      }
+    });
 
     // 触发普通监听器
     const listeners = this.listeners.get(type);
@@ -170,11 +180,43 @@ export class EventBus implements EventBusInterface {
   }
 
   /**
+   * 监听所有事件
+   */
+  onAny<T extends BaseEvent>(handler: EventHandler<T>): EventSubscription {
+    // 检查监听器数量限制
+    if (this.anyListeners.size >= this.maxListeners) {
+      console.warn(`[EventBus] Too many any listeners. Maximum is ${this.maxListeners}`);
+    }
+
+    this.anyListeners.add(handler as EventHandler);
+
+    if (this.debug) {
+      console.log('[EventBus] Added any event listener');
+    }
+
+    return {
+      unsubscribe: () => this.offAny(handler)
+    };
+  }
+
+  /**
+   * 移除监听所有事件的处理器
+   */
+  offAny<T extends BaseEvent>(handler: EventHandler<T>): void {
+    this.anyListeners.delete(handler as EventHandler);
+
+    if (this.debug) {
+      console.log('[EventBus] Removed any event listener');
+    }
+  }
+
+  /**
    * 清除所有监听器
    */
   clear(): void {
     this.listeners.clear();
     this.onceListeners.clear();
+    this.anyListeners.clear();
     
     if (this.debug) {
       console.log('[EventBus] Cleared all listeners');
@@ -219,6 +261,7 @@ export class EventBus implements EventBusInterface {
   getStats(): {
     totalEventTypes: number;
     totalListeners: number;
+    anyListeners: number;
     eventTypeStats: Record<string, { listeners: number; onceListeners: number }>;
   } {
     const eventTypeStats: Record<string, { listeners: number; onceListeners: number }> = {};
@@ -242,9 +285,13 @@ export class EventBus implements EventBusInterface {
       totalListeners += listeners.size;
     });
 
+    // 包含监听所有事件的处理器
+    totalListeners += this.anyListeners.size;
+
     return {
       totalEventTypes: Object.keys(eventTypeStats).length,
       totalListeners,
+      anyListeners: this.anyListeners.size,
       eventTypeStats
     };
   }

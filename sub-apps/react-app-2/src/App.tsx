@@ -3,24 +3,29 @@
  * 使用Zustand进行状态管理
  */
 
-import React, { useEffect } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
-import { Layout, message } from 'antd';
+import React, { useEffect, useState } from 'react';
+import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
+import { Layout, message, Typography, Menu } from 'antd';
 import { Helmet } from 'react-helmet-async';
+import {
+  AppstoreOutlined,
+  TagsOutlined,
+  StockOutlined,
+  DollarOutlined,
+  UserOutlined,
+  DashboardOutlined
+} from '@ant-design/icons';
 
 // 导入页面组件
 import ProductList from './pages/ProductList';
-import ProductDetail from './pages/ProductDetail';
 import CategoryManagement from './pages/CategoryManagement';
-import ProductStats from './pages/ProductStats';
-
-// 导入布局组件
-import AppHeader from './components/Layout/AppHeader';
-import AppSidebar from './components/Layout/AppSidebar';
-import AppFooter from './components/Layout/AppFooter';
+import InventoryManagement from './pages/InventoryManagement';
+import PricingManagement from './pages/PricingManagement';
+import SupplierManagement from './pages/SupplierManagement';
+import Dashboard from './pages/Dashboard';
 
 // 导入样式
-import './styles/App.css';
+import './styles/index.css';
 
 // 导入共享库
 import { globalEventBus } from '@shared/communication/event-bus';
@@ -30,13 +35,17 @@ import { EVENT_TYPES } from '@shared/types/events';
 // 导入Store
 import { useProductStore } from './store/productStore';
 
-const { Content } = Layout;
+const { Content, Header, Sider } = Layout;
+const { Title } = Typography;
 
 /**
  * 主应用组件
  */
 const App: React.FC = () => {
-  const { setError, reset } = useProductStore();
+  const { reset } = useProductStore();
+  const [collapsed, setCollapsed] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     globalLogger.info('Product Management App mounted');
@@ -74,7 +83,7 @@ const App: React.FC = () => {
 
     // 发送应用就绪事件
     globalEventBus.emit({
-      type: EVENT_TYPES.APP_READY,
+      type: 'APP_READY',
       source: 'react-product-management',
       timestamp: new Date().toISOString(),
       id: `app-ready-${Date.now()}`,
@@ -102,7 +111,8 @@ const App: React.FC = () => {
    * 初始化示例数据
    */
   const initializeSampleData = () => {
-    const { products, categories, setProducts, setCategories } = useProductStore.getState();
+    const { products } = useProductStore.getState();
+    const { setProducts, setCategories } = useProductStore.getState();
     
     // 如果没有数据，则初始化示例数据
     if (products.length === 0) {
@@ -178,36 +188,6 @@ const App: React.FC = () => {
           updatedAt: new Date().toISOString(),
           createdBy: 'system',
           updatedBy: 'system'
-        },
-        {
-          id: 'prod_4',
-          name: '智能台灯',
-          description: 'LED护眼台灯，支持App控制',
-          price: 299,
-          category: 'cat_3',
-          stock: 5,
-          status: 'active' as const,
-          images: ['/images/smart-lamp.jpg'],
-          tags: ['台灯', '智能', 'LED', '护眼'],
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          createdBy: 'system',
-          updatedBy: 'system'
-        },
-        {
-          id: 'prod_5',
-          name: '无线耳机',
-          description: '降噪无线耳机，续航30小时',
-          price: 599,
-          category: 'cat_1',
-          stock: 0,
-          status: 'inactive' as const,
-          images: ['/images/wireless-earbuds.jpg'],
-          tags: ['耳机', '无线', '降噪', '长续航'],
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          createdBy: 'system',
-          updatedBy: 'system'
         }
       ];
 
@@ -221,13 +201,43 @@ const App: React.FC = () => {
     }
   };
 
-  /**
-   * 错误处理
-   */
-  const handleError = (error: Error) => {
-    globalLogger.error('App error', error);
-    setError(error.message);
-    message.error('应用发生错误，请刷新页面重试');
+  // 菜单配置
+  const menuItems = [
+    {
+      key: '/dashboard',
+      icon: <DashboardOutlined />,
+      label: '数据统计',
+    },
+    {
+      key: '/products',
+      icon: <AppstoreOutlined />,
+      label: '商品管理',
+    },
+    {
+      key: '/categories',
+      icon: <TagsOutlined />,
+      label: '分类管理',
+    },
+    {
+      key: '/inventory',
+      icon: <StockOutlined />,
+      label: '库存管理',
+    },
+    {
+      key: '/pricing',
+      icon: <DollarOutlined />,
+      label: '价格策略',
+    },
+    {
+      key: '/suppliers',
+      icon: <UserOutlined />,
+      label: '供应商管理',
+    },
+  ];
+
+  // 处理菜单点击
+  const handleMenuClick = ({ key }: { key: string }) => {
+    navigate(key);
   };
 
   return (
@@ -237,28 +247,44 @@ const App: React.FC = () => {
         <meta name="description" content="基于React和Zustand的商品管理系统" />
       </Helmet>
 
-      <Layout className="product-app-layout">
-        <AppHeader />
+      <Layout style={{ minHeight: '100vh' }}>
+        <Header style={{ background: '#52c41a', padding: '0 24px', display: 'flex', alignItems: 'center' }}>
+          <Title level={3} style={{ color: 'white', margin: 0 }}>
+            商品管理系统
+          </Title>
+        </Header>
         
         <Layout>
-          <AppSidebar />
+          <Sider
+            collapsible
+            collapsed={collapsed}
+            onCollapse={setCollapsed}
+            theme="light"
+            style={{ background: '#fff' }}
+          >
+            <Menu
+              mode="inline"
+              selectedKeys={[location.pathname]}
+              items={menuItems}
+              onClick={handleMenuClick}
+              style={{ height: '100%', borderRight: 0 }}
+            />
+          </Sider>
           
-          <Layout className="product-app-content">
-            <Content className="product-app-main">
-              <div className="product-app-container">
-                <Routes>
-                  <Route path="/" element={<Navigate to="/products" replace />} />
-                  <Route path="/products" element={<ProductList />} />
-                  <Route path="/products/:id" element={<ProductDetail />} />
-                  <Route path="/categories" element={<CategoryManagement />} />
-                  <Route path="/stats" element={<ProductStats />} />
-                  <Route path="*" element={<Navigate to="/products" replace />} />
-                </Routes>
-              </div>
-            </Content>
-            
-            <AppFooter />
-          </Layout>
+          <Content style={{ padding: '24px', background: '#f0f2f5' }}>
+            <div style={{ background: '#fff', padding: '24px', borderRadius: '8px' }}>
+              <Routes>
+                <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/products" element={<ProductList />} />
+                <Route path="/categories" element={<CategoryManagement />} />
+                <Route path="/inventory" element={<InventoryManagement />} />
+                <Route path="/pricing" element={<PricingManagement />} />
+                <Route path="/suppliers" element={<SupplierManagement />} />
+                <Route path="*" element={<Navigate to="/dashboard" replace />} />
+              </Routes>
+            </div>
+          </Content>
         </Layout>
       </Layout>
     </>
