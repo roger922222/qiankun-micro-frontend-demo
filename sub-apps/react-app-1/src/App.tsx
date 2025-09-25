@@ -1,5 +1,5 @@
 import React from 'react';
-import { ConfigProvider, Layout, Menu, theme, Button } from 'antd';
+import { ConfigProvider, Layout, Menu, theme, Button, Dropdown, Space } from 'antd';
 import { Routes, Route, Link, useLocation, Location } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import { store } from './store';
@@ -12,7 +12,14 @@ import {
   TeamOutlined,
   SafetyOutlined,
   FileTextOutlined,
+  AppstoreOutlined,
+  DownOutlined,
+  ApiOutlined,
 } from '@ant-design/icons';
+
+// 导入导航Hook和通信演示组件
+import { useCrossAppNavigation, useNavigationParameters } from './hooks/useNavigation';
+import CommunicationDemo from './components/CommunicationDemo';
 
 const { Header, Sider, Content } = Layout;
 
@@ -28,6 +35,65 @@ const App: React.FC = () => {
   
   const [collapsed, setCollapsed] = React.useState(false);
   const [darkMode, setDarkMode] = React.useState(false);
+
+  // 使用跨应用导航
+  const {
+    goToProductManagement,
+    goToOrderManagement,
+    goToDashboard,
+    goToSettings,
+    goToMessageCenter,
+    goToFileManagement,
+    goToSystemMonitor,
+    goToMainApp
+  } = useCrossAppNavigation();
+
+  // 使用导航参数
+  const { currentParameters, clearReceivedParameters } = useNavigationParameters();
+
+  // 跨应用导航菜单
+  const crossAppMenuItems = [
+    {
+      key: 'main',
+      label: '主应用',
+      onClick: () => goToMainApp()
+    },
+    {
+      key: 'products',
+      label: '商品管理',
+      onClick: () => goToProductManagement()
+    },
+    {
+      key: 'orders',
+      label: '订单管理',
+      onClick: () => goToOrderManagement()
+    },
+    {
+      key: 'dashboard',
+      label: '数据看板',
+      onClick: () => goToDashboard()
+    },
+    {
+      key: 'settings',
+      label: '设置中心',
+      onClick: () => goToSettings()
+    },
+    {
+      key: 'messages',
+      label: '消息中心',
+      onClick: () => goToMessageCenter()
+    },
+    {
+      key: 'files',
+      label: '文件管理',
+      onClick: () => goToFileManagement()
+    },
+    {
+      key: 'monitor',
+      label: '系统监控',
+      onClick: () => goToSystemMonitor()
+    }
+  ];
 
   const menuItems = [
     {
@@ -49,6 +115,11 @@ const App: React.FC = () => {
       key: '/logs',
       icon: <FileTextOutlined />,
       label: <Link to="/logs">操作日志</Link>,
+    },
+    {
+      key: '/communication-demo',
+      icon: <ApiOutlined />,
+      label: <Link to="/communication-demo">通信演示</Link>,
     },
   ];
 
@@ -75,7 +146,41 @@ const App: React.FC = () => {
             <Header style={{ padding: 0, background: '#fff' }}>
               <div style={{ padding: '0 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <h2 style={{ margin: 0 }}>用户管理系统</h2>
-                <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                  {/* 显示接收到的参数 */}
+                  {currentParameters && (
+                    <div style={{ 
+                      padding: '4px 8px', 
+                      background: '#f0f0f0', 
+                      borderRadius: '4px',
+                      fontSize: '12px'
+                    }}>
+                      <span>接收参数: {JSON.stringify(currentParameters)}</span>
+                      <Button 
+                        size="small" 
+                        type="text" 
+                        onClick={clearReceivedParameters}
+                        style={{ marginLeft: '8px' }}
+                      >
+                        清除
+                      </Button>
+                    </div>
+                  )}
+                  
+                  {/* 跨应用导航下拉菜单 */}
+                  <Dropdown 
+                    menu={{ items: crossAppMenuItems }}
+                    trigger={['click']}
+                  >
+                    <Button type="text">
+                      <Space>
+                        <AppstoreOutlined />
+                        跨应用导航
+                        <DownOutlined />
+                      </Space>
+                    </Button>
+                  </Dropdown>
+                  
                   <span style={{ marginRight: 16 }}>欢迎，管理员</span>
                   <Button onClick={() => setDarkMode(!darkMode)}>
                     {darkMode ? '浅色' : '深色'}
@@ -89,6 +194,7 @@ const App: React.FC = () => {
                 <Route path="/roles/*" element={<RoleRoutes />} />
                 <Route path="/permissions/*" element={<PermissionRoutes />} />
                 <Route path="/logs/*" element={<LogRoutes />} />
+                <Route path="/communication-demo" element={<CommunicationDemo />} />
                 <Route path="/" element={<UserRoutes />} />
               </Routes>
             </Content>

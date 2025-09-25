@@ -10,6 +10,8 @@ export interface BaseEvent {
   source: string;
   timestamp: string;
   id: string;
+  data?: any;
+  metadata?: Record<string, any>;
 }
 
 export interface EventPayload<T = any> extends BaseEvent {
@@ -248,7 +250,7 @@ export interface EventSubscription {
 }
 
 export interface EventBusInterface {
-  emit<T extends BaseEvent>(event: T): void;
+  emit<T extends BaseEvent>(event: T): Promise<void>;
   on<T extends BaseEvent>(eventType: string, handler: EventHandler<T>): EventSubscription;
   off<T extends BaseEvent>(eventType: string, handler: EventHandler<T>): void;
   once<T extends BaseEvent>(eventType: string, handler: EventHandler<T>): EventSubscription;

@@ -1,33 +1,63 @@
 /**
  * 事件总线 - 微前端应用间通信核心
- * 提供发布订阅模式的事件通信机制
+ * 提供发布订阅模式的事件通信机制，支持中间件处理流程
  */
 
 import { EventBusInterface, EventHandler, EventSubscription, BaseEvent } from '../types/events';
+import { EventMiddlewareManager, EventMiddleware } from './middleware/event-middleware';
+
+// 类型声明
+declare const process: any;
 
 /**
- * 事件总线实现类
+ * 增强事件总线实现类
  */
 export class EventBus implements EventBusInterface {
   private listeners: Map<string, Set<EventHandler>> = new Map();
   private onceListeners: Map<string, Set<EventHandler>> = new Map();
   private maxListeners: number = 100;
   private debug: boolean = false;
+  private middlewareManager: EventMiddlewareManager;
 
   constructor(options?: { maxListeners?: number; debug?: boolean }) {
     this.maxListeners = options?.maxListeners || 100;
     this.debug = options?.debug || false;
+    this.middlewareManager = new EventMiddlewareManager({
+      debug: this.debug,
+      performanceTracking: true
+    });
   }
 
   /**
-   * 发射事件
+   * 发射事件 - 增强版本，支持中间件处理
    */
-  emit<T extends BaseEvent>(event: T): void {
+  async emit<T extends BaseEvent>(event: T): Promise<void> {
     const { type } = event;
     
     if (this.debug) {
       console.log(`[EventBus] Emitting event: ${type}`, event);
     }
+
+    try {
+      // 通过中间件处理事件
+      const processedEvent = await this.middlewareManager.processEvent(event);
+      
+      // 执行原始发射逻辑
+      this.emitProcessedEvent(processedEvent);
+    } catch (error) {
+      console.error(`[EventBus] Error processing event ${type}:`, error);
+      // 根据错误类型决定是否继续执行
+      if (this.shouldContinueOnError(error)) {
+        this.emitProcessedEvent(event);
+      }
+    }
+  }
+
+  /**
+   * 发射已处理的事件（原始逻辑）
+   */
+  private emitProcessedEvent<T extends BaseEvent>(event: T): void {
+    const { type } = event;
 
     // 触发普通监听器
     const listeners = this.listeners.get(type);
@@ -54,6 +84,18 @@ export class EventBus implements EventBusInterface {
       // 清除一次性监听器
       this.onceListeners.delete(type);
     }
+  }
+
+  /**
+   * 判断是否在错误时继续执行
+   */
+  private shouldContinueOnError(error: any): boolean {
+    // 如果是中间件拦截错误，不继续执行
+    if (error.name === 'MiddlewareInterceptor') {
+      return false;
+    }
+    // 其他错误可以继续执行
+    return true;
   }
 
   /**
@@ -220,6 +262,48 @@ export class EventBus implements EventBusInterface {
   setMaxListeners(max: number): void {
     this.maxListeners = max;
   }
+
+  /**
+   * 添加中间件
+   */
+  use(middleware: EventMiddleware): void {
+    this.middlewareManager.use(middleware);
+  }
+
+  /**
+   * 移除中间件
+   */
+  removeMiddleware(middlewareName: string): boolean {
+    return this.middlewareManager.remove(middlewareName);
+  }
+
+  /**
+   * 获取中间件列表
+   */
+  getMiddleware(): EventMiddleware[] {
+    return this.middlewareManager.getMiddleware();
+  }
+
+  /**
+   * 启用/禁用中间件
+   */
+  toggleMiddleware(middlewareName: string, enabled: boolean): boolean {
+    return this.middlewareManager.toggle(middlewareName, enabled);
+  }
+
+  /**
+   * 获取中间件统计信息
+   */
+  getMiddlewareStats() {
+    return this.middlewareManager.getStats();
+  }
+
+  /**
+   * 清除所有中间件
+   */
+  clearMiddleware(): void {
+    this.middlewareManager.clear();
+  }
 }
 
 /**
@@ -294,8 +378,8 @@ export class EventMixin {
   /**
    * 发射事件
    */
-  protected emit<T extends BaseEvent>(event: T): void {
-    this._eventBus.emit(event);
+  protected async emit<T extends BaseEvent>(event: T): Promise<void> {
+    await this._eventBus.emit(event);
   }
 
   /**
@@ -320,8 +404,8 @@ export class EventMixin {
 export function useEventBus(eventBus: EventBus = globalEventBus) {
   const subscriptions = new Set<EventSubscription>();
 
-  const emit = <T extends BaseEvent>(event: T) => {
-    eventBus.emit(event);
+  const emit = async <T extends BaseEvent>(event: T) => {
+    await eventBus.emit(event);
   };
 
   const on = <T extends BaseEvent>(eventType: string, handler: EventHandler<T>) => {
@@ -355,8 +439,8 @@ export function useEventBus(eventBus: EventBus = globalEventBus) {
 export function useEventBusVue(eventBus: EventBus = globalEventBus) {
   const subscriptions: EventSubscription[] = [];
 
-  const emit = <T extends BaseEvent>(event: T) => {
-    eventBus.emit(event);
+  const emit = async <T extends BaseEvent>(event: T) => {
+    await eventBus.emit(event);
   };
 
   const on = <T extends BaseEvent>(eventType: string, handler: EventHandler<T>) => {

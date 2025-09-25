@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>监控和错误处理系统演示</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .section {
+            background: white;
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .section h2 {
+            margin-top: 0;
+            color: #333;
+            border-bottom: 2px solid #1890ff;
+            padding-bottom: 10px;
+        }
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin: 10px 0;
+            flex-wrap: wrap;
+        }
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        .btn-primary {
+            background: #1890ff;
+            color: white;
+        }
+        .btn-success {
+            background: #52c41a;
+            color: white;
+        }
+        .btn-warning {
+            background: #faad14;
+            color: white;
+        }
+        .btn-danger {
+            background: #ff4d4f;
+            color: white;
+        }
+        button:hover {
+            opacity: 0.8;
+        }
+        .monitor-container {
+            border: 1px solid #d9d9d9;
+            border-radius: 4px;
+            min-height: 200px;
+            background: #fafafa;
+        }
+        .error-container {
+            border: 1px solid #ff4d4f;
+            border-radius: 4px;
+            min-height: 100px;
+            background: #fff2f0;
+        }
+        .log {
+            background: #f0f0f0;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>微前端监控和错误处理系统演示</h1>
+        
+        <!-- 性能监控演示 -->
+        <div class="section">
+            <h2>性能监控系统</h2>
+            <div class="button-group">
+                <button class="btn-primary" onclick="startPerformanceMonitoring()">启动监控</button>
+                <button class="btn-success" onclick="simulateEvents()">模拟事件</button>
+                <button class="btn-warning" onclick="simulateStateUpdates()">模拟状态更新</button>
+                <button class="btn-danger" onclick="clearMonitoringData()">清除数据</button>
+            </div>
+            <div id="performance-monitor" class="monitor-container"></div>
+        </div>
+
+        <!-- 错误处理演示 -->
+        <div class="section">
+            <h2>错误处理系统</h2>
+            <div class="button-group">
+                <button class="btn-danger" onclick="triggerError('runtime')">触发运行时错误</button>
+                <button class="btn-danger" onclick="triggerError('network')">触发网络错误</button>
+                <button class="btn-danger" onclick="triggerError('validation')">触发验证错误</button>
+                <button class="btn-primary" onclick="createRecoveryPoint()">创建恢复点</button>
+                <button class="btn-warning" onclick="testRetryMechanism()">测试重试机制</button>
+            </div>
+            <div id="error-boundary" class="error-container"></div>
+        </div>
+
+        <!-- 日志输出 -->
+        <div class="section">
+            <h2>系统日志</h2>
+            <button class="btn-primary" onclick="clearLogs()">清除日志</button>
+            <div id="logs" class="log"></div>
+        </div>
+    </div>
+
+    <!-- 加载监控和错误处理系统 -->
+    <script type="module">
+        // 模拟加载监控系统
+        window.monitoringSystem = {
+            performanceMonitor: null,
+            errorBoundary: null,
+            initialized: false
+        };
+
+        // 初始化系统
+        function initializeSystem() {
+            // 模拟性能监控器
+            window.monitoringSystem.performanceMonitor = {
+                enabled: false,
+                metrics: [],
+                
+                start() {
+                    this.enabled = true;
+                    log('✅ 性能监控已启动');
+                    this.updateDisplay();
+                },
+                
+                addMetric(type, name, duration, metadata = {}) {
+                    if (!this.enabled) return;
+                    
+                    const metric = {
+                        id: `metric_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                        timestamp: new Date().toISOString(),
+                        type,
+                        name,
+                        duration,
+                        metadata
+                    };
+                    
+                    this.metrics.push(metric);
+                    if (this.metrics.length > 100) {
+                        this.metrics = this.metrics.slice(-100);
+                    }
+                    
+                    log(`📊 新增指标: ${type} - ${name} (${duration.toFixed(2)}ms)`);
+                    this.updateDisplay();
+                },
+                
+                clear() {
+                    this.metrics = [];
+                    log('🗑️ 监控数据已清除');
+                    this.updateDisplay();
+                },
+                
+                updateDisplay() {
+                    const container = document.getElementById('performance-monitor');
+                    if (!container) return;
+                    
+                    const eventMetrics = this.metrics.filter(m => m.type === 'event');
+                    const stateMetrics = this.metrics.filter(m => m.type === 'state');
+                    
+                    const avgEventDuration = eventMetrics.length > 0 
+                        ? eventMetrics.reduce((sum, m) => sum + m.duration, 0) / eventMetrics.length 
+                        : 0;
+                    
+                    const avgStateDuration = stateMetrics.length > 0
+                        ? stateMetrics.reduce((sum, m) => sum + m.duration, 0) / stateMetrics.length
+                        : 0;
+                    
+                    container.innerHTML = `
+                        <div style="padding: 16px;">
+                            <h3 style="margin-top: 0;">实时性能监控</h3>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+                                <div style="background: white; padding: 12px; border-radius: 4px; border: 1px solid #e8e8e8;">
+                                    <div style="font-size: 12px; color: #666; margin-bottom: 4px;">总事件数</div>
+                                    <div style="font-size: 20px; font-weight: bold; color: #333;">${eventMetrics.length}</div>
+                                </div>
+                                <div style="background: white; padding: 12px; border-radius: 4px; border: 1px solid #e8e8e8;">
+                                    <div style="font-size: 12px; color: #666; margin-bottom: 4px;">平均事件处理时间</div>
+                                    <div style="font-size: 20px; font-weight: bold; color: ${avgEventDuration > 10 ? '#ff4d4f' : '#52c41a'};">${avgEventDuration.toFixed(2)}ms</div>
+                                </div>
+                                <div style="background: white; padding: 12px; border-radius: 4px; border: 1px solid #e8e8e8;">
+                                    <div style="font-size: 12px; color: #666; margin-bottom: 4px;">状态更新数</div>
+                                    <div style="font-size: 20px; font-weight: bold; color: #333;">${stateMetrics.length}</div>
+                                </div>
+                                <div style="background: white; padding: 12px; border-radius: 4px; border: 1px solid #e8e8e8;">
+                                    <div style="font-size: 12px; color: #666; margin-bottom: 4px;">平均状态更新时间</div>
+                                    <div style="font-size: 20px; font-weight: bold; color: ${avgStateDuration > 5 ? '#ff4d4f' : '#52c41a'};">${avgStateDuration.toFixed(2)}ms</div>
+                                </div>
+                            </div>
+                            <div style="margin-top: 16px;">
+                                <h4>最近指标 (最新10条)</h4>
+                                <div style="max-height: 150px; overflow-y: auto; font-size: 12px; font-family: monospace;">
+                                    ${this.metrics.slice(-10).reverse().map(m => 
+                                        `<div style="padding: 4px; border-bottom: 1px solid #f0f0f0;">
+                                            ${new Date(m.timestamp).toLocaleTimeString()} - ${m.type} - ${m.name} (${m.duration.toFixed(2)}ms)
+                                        </div>`
+                                    ).join('')}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+            };
+
+            // 模拟错误边界
+            window.monitoringSystem.errorBoundary = {
+                errors: [],
+                recoveryPoints: [],
+                
+                handleError(error, context = {}) {
+                    const errorInfo = {
+                        id: `error_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                        timestamp: new Date().toISOString(),
+                        message: error.message,
+                        type: context.type || 'runtime-error',
+                        level: context.level || 'medium',
+                        context
+                    };
+                    
+                    this.errors.push(errorInfo);
+                    if (this.errors.length > 50) {
+                        this.errors = this.errors.slice(-50);
+                    }
+                    
+                    log(`❌ 错误捕获: ${errorInfo.type} - ${errorInfo.message}`);
+                    this.updateDisplay();
+                    
+                    return errorInfo;
+                },
+                
+                createRecoveryPoint(description) {
+                    const point = {
+                        id: `recovery_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                        timestamp: new Date().toISOString(),
+                        description,
+                        state: { /* 模拟状态快照 */ }
+                    };
+                    
+                    this.recoveryPoints.push(point);
+                    if (this.recoveryPoints.length > 20) {
+                        this.recoveryPoints = this.recoveryPoints.slice(-20);
+                    }
+                    
+                    log(`💾 恢复点已创建: ${description}`);
+                    return point.id;
+                },
+                
+                async retry(fn, maxRetries = 3) {
+                    let attempts = 0;
+                    let lastError = null;
+                    
+                    while (attempts < maxRetries) {
+                        attempts++;
+                        try {
+                            const result = await fn();
+                            log(`✅ 重试成功 (第${attempts}次尝试)`);
+                            return { success: true, result, attempts };
+                        } catch (error) {
+                            lastError = error;
+                            log(`⚠️ 重试失败 (第${attempts}次尝试): ${error.message}`);
+                            
+                            if (attempts < maxRetries) {
+                                const delay = Math.pow(2, attempts - 1) * 1000; // 指数退避
+                                await new Promise(resolve => setTimeout(resolve, delay));
+                            }
+                        }
+                    }
+                    
+                    log(`❌ 重试最终失败 (${attempts}次尝试)`);
+                    return { success: false, error: lastError, attempts };
+                },
+                
+                updateDisplay() {
+                    const container = document.getElementById('error-boundary');
+                    if (!container) return;
+                    
+                    const recentErrors = this.errors.slice(-5);
+                    
+                    container.innerHTML = `
+                        <div style="padding: 16px;">
+                            <h3 style="margin-top: 0;">错误处理状态</h3>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; margin-bottom: 16px;">
+                                <div style="background: white; padding: 12px; border-radius: 4px; border: 1px solid #e8e8e8;">
+                                    <div style="font-size: 12px; color: #666; margin-bottom: 4px;">总错误数</div>
+                                    <div style="font-size: 20px; font-weight: bold; color: #ff4d4f;">${this.errors.length}</div>
+                                </div>
+                                <div style="background: white; padding: 12px; border-radius: 4px; border: 1px solid #e8e8e8;">
+                                    <div style="font-size: 12px; color: #666; margin-bottom: 4px;">恢复点数</div>
+                                    <div style="font-size: 20px; font-weight: bold; color: #52c41a;">${this.recoveryPoints.length}</div>
+                                </div>
+                            </div>
+                            ${recentErrors.length > 0 ? `
+                                <h4>最近错误</h4>
+                                <div style="max-height: 120px; overflow-y: auto;">
+                                    ${recentErrors.reverse().map(error => `
+                                        <div style="background: white; padding: 8px; margin: 4px 0; border-radius: 4px; border-left: 4px solid #ff4d4f; font-size: 12px;">
+                                            <div style="font-weight: bold;">${error.type}</div>
+                                            <div style="color: #666; margin: 2px 0;">${error.message}</div>
+                                            <div style="color: #999; font-size: 10px;">${new Date(error.timestamp).toLocaleString()}</div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            ` : '<div style="color: #999; text-align: center; padding: 20px;">暂无错误记录</div>'}
+                        </div>
+                    `;
+                }
+            };
+
+            window.monitoringSystem.initialized = true;
+            log('🚀 监控和错误处理系统初始化完成');
+        }
+
+        // 日志函数
+        function log(message) {
+            const logsContainer = document.getElementById('logs');
+            if (!logsContainer) return;
+            
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.innerHTML = `[${timestamp}] ${message}`;
+            logsContainer.appendChild(logEntry);
+            logsContainer.scrollTop = logsContainer.scrollHeight;
+        }
+
+        // 全局函数
+        window.startPerformanceMonitoring = function() {
+            if (!window.monitoringSystem.initialized) {
+                initializeSystem();
+            }
+            window.monitoringSystem.performanceMonitor.start();
+        };
+
+        window.simulateEvents = function() {
+            const monitor = window.monitoringSystem.performanceMonitor;
+            if (!monitor.enabled) {
+                log('⚠️ 请先启动性能监控');
+                return;
+            }
+            
+            // 模拟不同类型的事件
+            const events = [
+                { name: 'USER_LOGIN', duration: Math.random() * 20 + 5 },
+                { name: 'DATA_FETCH', duration: Math.random() * 50 + 10 },
+                { name: 'ROUTE_CHANGE', duration: Math.random() * 15 + 3 },
+                { name: 'COMPONENT_RENDER', duration: Math.random() * 8 + 2 }
+            ];
+            
+            events.forEach((event, index) => {
+                setTimeout(() => {
+                    monitor.addMetric('event', event.name, event.duration, {
+                        source: 'simulation',
+                        batch: Date.now()
+                    });
+                }, index * 200);
+            });
+        };
+
+        window.simulateStateUpdates = function() {
+            const monitor = window.monitoringSystem.performanceMonitor;
+            if (!monitor.enabled) {
+                log('⚠️ 请先启动性能监控');
+                return;
+            }
+            
+            // 模拟状态更新
+            const updates = [
+                { name: 'UPDATE_USER_PROFILE', duration: Math.random() * 10 + 2 },
+                { name: 'UPDATE_THEME', duration: Math.random() * 5 + 1 },
+                { name: 'UPDATE_PERMISSIONS', duration: Math.random() * 15 + 3 }
+            ];
+            
+            updates.forEach((update, index) => {
+                setTimeout(() => {
+                    monitor.addMetric('state', update.name, update.duration, {
+                        source: 'simulation',
+                        stateSize: Math.floor(Math.random() * 1000) + 100
+                    });
+                }, index * 300);
+            });
+        };
+
+        window.clearMonitoringData = function() {
+            if (window.monitoringSystem.performanceMonitor) {
+                window.monitoringSystem.performanceMonitor.clear();
+            }
+        };
+
+        window.triggerError = function(type) {
+            if (!window.monitoringSystem.initialized) {
+                initializeSystem();
+            }
+            
+            const errorBoundary = window.monitoringSystem.errorBoundary;
+            let error;
+            
+            switch (type) {
+                case 'runtime':
+                    error = new Error('模拟运行时错误: 未定义的变量访问');
+                    errorBoundary.handleError(error, { type: 'runtime-error', level: 'high' });
+                    break;
+                case 'network':
+                    error = new Error('模拟网络错误: 请求超时');
+                    errorBoundary.handleError(error, { type: 'network-error', level: 'medium' });
+                    break;
+                case 'validation':
+                    error = new Error('模拟验证错误: 无效的用户输入');
+                    errorBoundary.handleError(error, { type: 'validation-error', level: 'low' });
+                    break;
+            }
+        };
+
+        window.createRecoveryPoint = function() {
+            if (!window.monitoringSystem.initialized) {
+                initializeSystem();
+            }
+            
+            const description = `手动恢复点 - ${new Date().toLocaleTimeString()}`;
+            window.monitoringSystem.errorBoundary.createRecoveryPoint(description);
+        };
+
+        window.testRetryMechanism = function() {
+            if (!window.monitoringSystem.initialized) {
+                initializeSystem();
+            }
+            
+            const errorBoundary = window.monitoringSystem.errorBoundary;
+            
+            // 模拟一个可能失败的操作
+            let attemptCount = 0;
+            const unreliableOperation = () => {
+                attemptCount++;
+                if (attemptCount < 3) {
+                    throw new Error(`模拟失败 (尝试 ${attemptCount})`);
+                }
+                return `成功结果 (第${attemptCount}次尝试)`;
+            };
+            
+            log('🔄 开始测试重试机制...');
+            errorBoundary.retry(unreliableOperation, 5).then(result => {
+                if (result.success) {
+                    log(`✅ 重试机制测试成功: ${result.result}`);
+                } else {
+                    log(`❌ 重试机制测试失败: ${result.error.message}`);
+                }
+            });
+        };
+
+        window.clearLogs = function() {
+            const logsContainer = document.getElementById('logs');
+            if (logsContainer) {
+                logsContainer.innerHTML = '';
+            }
+        };
+
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            log('📄 页面加载完成，监控演示系统就绪');
+            log('💡 点击上方按钮开始测试各项功能');
+        });
+    </script>
+</body>
+</html>

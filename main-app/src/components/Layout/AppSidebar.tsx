@@ -15,7 +15,8 @@ import {
   SettingOutlined,
   MessageOutlined,
   FolderOutlined,
-  MonitorOutlined
+  MonitorOutlined,
+  ApiOutlined
 } from '@ant-design/icons';
 import type { MenuProps } from 'antd';
 import { MicroAppConfig } from '@shared/types';
@@ -46,6 +47,12 @@ const AppSidebar: React.FC<AppSidebarProps> = ({
       icon: <DashboardOutlined />,
       label: '仪表盘',
       onClick: () => navigate('/dashboard')
+    },
+    {
+      key: '/communication-demo',
+      icon: <ApiOutlined />,
+      label: '通信演示',
+      onClick: () => navigate('/communication-demo')
     },
     {
       type: 'divider'

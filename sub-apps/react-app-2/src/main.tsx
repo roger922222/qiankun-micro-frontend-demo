@@ -22,8 +22,32 @@ import ErrorFallback from './components/ErrorFallback';
 // 导入共享库
 import { globalLogger } from '@shared/utils/logger';
 
+// 导入导航集成
+import { createMicroAppNavigation } from '@shared/communication/navigation/micro-app-integration';
+
 // 全局变量保存 React root 实例，避免重复创建
 let reactRoot: any = null;
+
+// 创建导航API实例
+const navigationAPI = createMicroAppNavigation({
+  appName: 'react-app-2',
+  basename: window.__POWERED_BY_QIANKUN__ ? '/product-management' : '/',
+  debug: process.env.NODE_ENV === 'development',
+  enableParameterReceiving: true,
+  enableCrossAppNavigation: true,
+  onNavigationReceived: (event) => {
+    console.log('[ReactApp2] Navigation event received:', event);
+  },
+  onParameterReceived: (event) => {
+    console.log('[ReactApp2] Parameters received:', event);
+  },
+  onRouteChange: (event) => {
+    console.log('[ReactApp2] Route changed:', event);
+  }
+});
+
+// 将导航API挂载到全局，供组件使用
+(window as any).__MICRO_APP_NAVIGATION__ = navigationAPI;
 
 /**
  * 渲染应用

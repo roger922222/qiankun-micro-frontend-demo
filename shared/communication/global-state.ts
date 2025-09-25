@@ -1,24 +1,211 @@
 /**
  * 全局状态管理 - 微前端应用间共享状态
- * 提供跨应用的状态同步机制
+ * 提供跨应用的状态同步机制，支持中间件和状态历史管理
  */
 
 import { globalEventBus } from './event-bus';
 import { GlobalState, StateListener, StateAction } from '../types/store';
 import { EVENT_TYPES } from '../types/events';
+import { StateMiddlewareManager, StateMiddleware } from './middleware/state-middleware';
+
+// React import (only available in React environments)
+let React: any;
+try {
+  if (typeof window !== 'undefined' && (window as any).React) {
+    React = (window as any).React;
+  }
+} catch {
+  // React not available, hooks will not work
+}
+
+// 类型声明
+declare const process: any;
+
+// ==================== 状态历史管理 ====================
+
+export interface StateSnapshot {
+  id: string;
+  timestamp: string;
+  state: GlobalState;
+  action?: StateAction;
+  description?: string;
+}
+
+export interface StateHistoryOptions {
+  maxSnapshots?: number;
+  enableTimeTravel?: boolean;
+  autoSnapshot?: boolean;
+  snapshotInterval?: number;
+}
+
+export class StateHistoryManager {
+  private snapshots: StateSnapshot[] = [];
+  private currentIndex: number = -1;
+  private maxSnapshots: number;
+  private enableTimeTravel: boolean;
+  private autoSnapshot: boolean;
+  private snapshotInterval: number;
+  private lastSnapshotTime: number = 0;
+
+  constructor(options: StateHistoryOptions = {}) {
+    this.maxSnapshots = options.maxSnapshots || 50;
+    this.enableTimeTravel = options.enableTimeTravel !== false;
+    this.autoSnapshot = options.autoSnapshot !== false;
+    this.snapshotInterval = options.snapshotInterval || 1000; // 1秒
+  }
+
+  /**
+   * 创建状态快照
+   */
+  createSnapshot(state: GlobalState, action?: StateAction, description?: string): StateSnapshot {
+    const snapshot: StateSnapshot = {
+      id: `snapshot-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      timestamp: new Date().toISOString(),
+      state: JSON.parse(JSON.stringify(state)), // 深拷贝
+      action,
+      description
+    };
+
+    // 如果启用时间旅行，移除当前位置之后的快照
+    if (this.enableTimeTravel && this.currentIndex < this.snapshots.length - 1) {
+      this.snapshots = this.snapshots.slice(0, this.currentIndex + 1);
+    }
+
+    this.snapshots.push(snapshot);
+    this.currentIndex = this.snapshots.length - 1;
+
+    // 保持快照数量在限制内
+    if (this.snapshots.length > this.maxSnapshots) {
+      const removeCount = this.snapshots.length - this.maxSnapshots;
+      this.snapshots.splice(0, removeCount);
+      this.currentIndex -= removeCount;
+    }
+
+    this.lastSnapshotTime = Date.now();
+    return snapshot;
+  }
+
+  /**
+   * 检查是否应该创建自动快照
+   */
+  shouldCreateAutoSnapshot(): boolean {
+    if (!this.autoSnapshot) return false;
+    return Date.now() - this.lastSnapshotTime >= this.snapshotInterval;
+  }
+
+  /**
+   * 撤销到上一个状态
+   */
+  undo(): StateSnapshot | null {
+    if (!this.enableTimeTravel || this.currentIndex <= 0) {
+      return null;
+    }
+
+    this.currentIndex--;
+    return this.snapshots[this.currentIndex];
+  }
+
+  /**
+   * 重做到下一个状态
+   */
+  redo(): StateSnapshot | null {
+    if (!this.enableTimeTravel || this.currentIndex >= this.snapshots.length - 1) {
+      return null;
+    }
+
+    this.currentIndex++;
+    return this.snapshots[this.currentIndex];
+  }
+
+  /**
+   * 跳转到指定快照
+   */
+  jumpTo(snapshotId: string): StateSnapshot | null {
+    if (!this.enableTimeTravel) return null;
+
+    const index = this.snapshots.findIndex(s => s.id === snapshotId);
+    if (index === -1) return null;
+
+    this.currentIndex = index;
+    return this.snapshots[index];
+  }
+
+  /**
+   * 获取所有快照
+   */
+  getSnapshots(): StateSnapshot[] {
+    return [...this.snapshots];
+  }
+
+  /**
+   * 获取当前快照
+   */
+  getCurrentSnapshot(): StateSnapshot | null {
+    return this.currentIndex >= 0 ? this.snapshots[this.currentIndex] : null;
+  }
+
+  /**
+   * 清除所有快照
+   */
+  clear(): void {
+    this.snapshots = [];
+    this.currentIndex = -1;
+  }
+
+  /**
+   * 获取历史统计信息
+   */
+  getStats(): {
+    totalSnapshots: number;
+    currentIndex: number;
+    canUndo: boolean;
+    canRedo: boolean;
+    memoryUsage: number;
+  } {
+    const memoryUsage = JSON.stringify(this.snapshots).length;
+    
+    return {
+      totalSnapshots: this.snapshots.length,
+      currentIndex: this.currentIndex,
+      canUndo: this.currentIndex > 0,
+      canRedo: this.currentIndex < this.snapshots.length - 1,
+      memoryUsage
+    };
+  }
+}
 
 /**
- * 全局状态管理器
+ * 增强全局状态管理器
  */
 export class GlobalStateManager {
   private state: GlobalState;
   private listeners: Set<StateListener> = new Set();
   private middleware: Array<(action: StateAction, state: GlobalState, next: Function) => void> = [];
+  private middlewareManager: StateMiddlewareManager;
+  private historyManager: StateHistoryManager;
   private debug: boolean = false;
 
-  constructor(initialState?: Partial<GlobalState>) {
+  constructor(
+    initialState?: Partial<GlobalState>,
+    options?: {
+      historyOptions?: StateHistoryOptions;
+      debug?: boolean;
+    }
+  ) {
     this.state = this.createInitialState(initialState);
-    this.debug = typeof process !== 'undefined' && process.env?.NODE_ENV === 'development';
+    this.debug = options?.debug ?? (typeof process !== 'undefined' && process.env?.NODE_ENV === 'development');
+    
+    // 初始化中间件管理器
+    this.middlewareManager = new StateMiddlewareManager({
+      debug: this.debug,
+      performanceTracking: true
+    });
+
+    // 初始化状态历史管理器
+    this.historyManager = new StateHistoryManager(options?.historyOptions);
+
+    // 创建初始快照
+    this.historyManager.createSnapshot(this.state, undefined, 'Initial state');
   }
 
   /**
@@ -238,12 +425,17 @@ export class GlobalStateManager {
       console.log('[GlobalState] State updated:', { prevState, newState: this.state });
     }
 
+    // 创建状态快照（如果需要）
+    if (this.historyManager.shouldCreateAutoSnapshot()) {
+      this.historyManager.createSnapshot(this.state, undefined, 'Auto snapshot');
+    }
+
     // 通知所有监听器
     this.listeners.forEach(listener => {
       try {
         listener(this.state, prevState);
-      } catch (error) {
-        console.error('[GlobalState] Error in state listener:', error);
+      } catch (err) {
+        console.error('[GlobalState] Error in state listener:', err);
       }
     });
 
@@ -280,21 +472,42 @@ export class GlobalStateManager {
   }
 
   /**
-   * 派发动作
+   * 派发动作 - 增强版本，支持状态中间件
    */
-  dispatch(action: StateAction): void {
+  async dispatch(action: StateAction): Promise<void> {
     if (this.debug) {
       console.log('[GlobalState] Dispatching action:', action);
     }
 
-    // 执行中间件
+    // 创建动作快照
+    const prevState = { ...this.state };
+
+    try {
+      // 通过状态中间件处理动作
+      await this.middlewareManager.processAction(action, this.state, (processedAction) => {
+        this.executeAction(processedAction);
+      });
+
+      // 如果状态发生变化，创建快照
+      if (JSON.stringify(prevState) !== JSON.stringify(this.state)) {
+        this.historyManager.createSnapshot(this.state, action, `Action: ${action.type}`);
+      }
+
+    } catch (err) {
+      console.error('[GlobalState] Error processing action:', err);
+      // 可以选择是否回滚状态
+      if (this.shouldRollbackOnError(err)) {
+        this.state = prevState;
+      }
+      throw err;
+    }
+
+    // 执行传统中间件（向后兼容）
     let index = 0;
     const next = () => {
       if (index < this.middleware.length) {
         const middleware = this.middleware[index++];
         middleware(action, this.state, next);
-      } else {
-        this.executeAction(action);
       }
     };
 
@@ -373,21 +586,220 @@ export class GlobalStateManager {
    * 重置状态
    */
   reset(): void {
+    const prevState = { ...this.state };
     this.state = this.createInitialState();
+    
+    // 创建重置快照
+    this.historyManager.createSnapshot(this.state, undefined, 'State reset');
+    
     this.listeners.forEach(listener => {
       try {
-        listener(this.state, {} as GlobalState);
-      } catch (error) {
-        console.error('[GlobalState] Error in state listener during reset:', error);
+        listener(this.state, prevState);
+      } catch (err) {
+        console.error('[GlobalState] Error in state listener during reset:', err);
       }
     });
+  }
+
+  /**
+   * 判断是否在错误时回滚状态
+   */
+  private shouldRollbackOnError(_err: any): boolean {
+    // 可以根据错误类型决定是否回滚
+    return false; // 默认不回滚
+  }
+
+  // ==================== 状态中间件管理 ====================
+
+  /**
+   * 添加状态中间件
+   */
+  useStateMiddleware(middleware: StateMiddleware): void {
+    this.middlewareManager.use(middleware);
+  }
+
+  /**
+   * 移除状态中间件
+   */
+  removeStateMiddleware(middlewareName: string): boolean {
+    return this.middlewareManager.remove(middlewareName);
+  }
+
+  /**
+   * 获取状态中间件列表
+   */
+  getStateMiddleware(): StateMiddleware[] {
+    return this.middlewareManager.getMiddleware();
+  }
+
+  /**
+   * 启用/禁用状态中间件
+   */
+  toggleStateMiddleware(middlewareName: string, enabled: boolean): boolean {
+    return this.middlewareManager.toggle(middlewareName, enabled);
+  }
+
+  /**
+   * 获取状态中间件统计信息
+   */
+  getStateMiddlewareStats() {
+    return this.middlewareManager.getStats();
+  }
+
+  /**
+   * 清除所有状态中间件
+   */
+  clearStateMiddleware(): void {
+    this.middlewareManager.clear();
+  }
+
+  // ==================== 状态历史管理 ====================
+
+  /**
+   * 创建状态快照
+   */
+  createSnapshot(description?: string): StateSnapshot {
+    return this.historyManager.createSnapshot(this.state, undefined, description);
+  }
+
+  /**
+   * 撤销到上一个状态
+   */
+  undo(): boolean {
+    const snapshot = this.historyManager.undo();
+    if (snapshot) {
+      const prevState = { ...this.state };
+      this.state = snapshot.state;
+      
+      // 通知监听器
+      this.listeners.forEach(listener => {
+        try {
+          listener(this.state, prevState);
+        } catch (err) {
+          console.error('[GlobalState] Error in state listener during undo:', err);
+        }
+      });
+
+      if (this.debug) {
+        console.log('[GlobalState] State undone to snapshot:', snapshot.id);
+      }
+      
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * 重做到下一个状态
+   */
+  redo(): boolean {
+    const snapshot = this.historyManager.redo();
+    if (snapshot) {
+      const prevState = { ...this.state };
+      this.state = snapshot.state;
+      
+      // 通知监听器
+      this.listeners.forEach(listener => {
+        try {
+          listener(this.state, prevState);
+        } catch (err) {
+          console.error('[GlobalState] Error in state listener during redo:', err);
+        }
+      });
+
+      if (this.debug) {
+        console.log('[GlobalState] State redone to snapshot:', snapshot.id);
+      }
+      
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * 跳转到指定快照
+   */
+  jumpToSnapshot(snapshotId: string): boolean {
+    const snapshot = this.historyManager.jumpTo(snapshotId);
+    if (snapshot) {
+      const prevState = { ...this.state };
+      this.state = snapshot.state;
+      
+      // 通知监听器
+      this.listeners.forEach(listener => {
+        try {
+          listener(this.state, prevState);
+        } catch (err) {
+          console.error('[GlobalState] Error in state listener during jump:', err);
+        }
+      });
+
+      if (this.debug) {
+        console.log('[GlobalState] State jumped to snapshot:', snapshot.id);
+      }
+      
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * 获取所有状态快照
+   */
+  getSnapshots(): StateSnapshot[] {
+    return this.historyManager.getSnapshots();
+  }
+
+  /**
+   * 获取当前快照
+   */
+  getCurrentSnapshot(): StateSnapshot | null {
+    return this.historyManager.getCurrentSnapshot();
+  }
+
+  /**
+   * 清除状态历史
+   */
+  clearHistory(): void {
+    this.historyManager.clear();
+    // 创建当前状态的快照
+    this.historyManager.createSnapshot(this.state, undefined, 'History cleared');
+  }
+
+  /**
+   * 获取状态历史统计信息
+   */
+  getHistoryStats() {
+    return this.historyManager.getStats();
+  }
+
+  /**
+   * 检查是否可以撤销
+   */
+  canUndo(): boolean {
+    return this.historyManager.getStats().canUndo;
+  }
+
+  /**
+   * 检查是否可以重做
+   */
+  canRedo(): boolean {
+    return this.historyManager.getStats().canRedo;
   }
 }
 
 /**
  * 全局状态管理器实例
  */
-export const globalStateManager = new GlobalStateManager();
+export const globalStateManager = new GlobalStateManager(undefined, {
+  debug: typeof process !== 'undefined' && process.env?.NODE_ENV === 'development',
+  historyOptions: {
+    maxSnapshots: 50,
+    enableTimeTravel: true,
+    autoSnapshot: true,
+    snapshotInterval: 2000 // 2秒
+  }
+});
 
 /**
  * 状态选择器工具函数
@@ -490,6 +902,10 @@ export const actions = {
  * React Hook for global state
  */
 export function useGlobalState() {
+  if (!React) {
+    throw new Error('React is not available. Make sure you are using this hook in a React environment.');
+  }
+
   const [state, setState] = React.useState(globalStateManager.getState());
 
   React.useEffect(() => {
@@ -500,8 +916,8 @@ export function useGlobalState() {
     return unsubscribe;
   }, []);
 
-  const dispatch = React.useCallback((action: StateAction) => {
-    globalStateManager.dispatch(action);
+  const dispatch = React.useCallback(async (action: StateAction) => {
+    await globalStateManager.dispatch(action);
   }, []);
 
   return {
@@ -534,8 +950,8 @@ export class StatePersistence {
     try {
       const serializedState = JSON.stringify(state);
       this.storage.setItem(this.key, serializedState);
-    } catch (error) {
-      console.error('[StatePersistence] Failed to save state:', error);
+    } catch (err) {
+      console.error('[StatePersistence] Failed to save state:', err);
     }
   }
 
@@ -548,8 +964,8 @@ export class StatePersistence {
       if (serializedState) {
         return JSON.parse(serializedState);
       }
-    } catch (error) {
-      console.error('[StatePersistence] Failed to load state:', error);
+    } catch (err) {
+      console.error('[StatePersistence] Failed to load state:', err);
     }
     return null;
   }
@@ -560,8 +976,8 @@ export class StatePersistence {
   clear(): void {
     try {
       this.storage.removeItem(this.key);
-    } catch (error) {
-      console.error('[StatePersistence] Failed to clear state:', error);
+    } catch (err) {
+      console.error('[StatePersistence] Failed to clear state:', err);
     }
   }
 }

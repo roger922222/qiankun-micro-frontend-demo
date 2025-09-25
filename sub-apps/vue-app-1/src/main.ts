@@ -20,8 +20,12 @@ import './styles/index.css';
 // 导入共享库
 import { globalLogger } from '@shared/utils/logger';
 
+// 导入导航集成
+import { configureVueNavigation } from '@shared/communication/navigation/vue-integration-simple';
+
 let app: VueApp<Element> | null = null;
 let router: any = null;
+let navigationAPI: any = null;
 
 /**
  * 渲染应用
@@ -42,6 +46,24 @@ function render(props: any = {}) {
   app.use(router);
   app.use(store);
   app.use(Antd);
+  
+  // 配置导航系统
+  navigationAPI = configureVueNavigation(app, {
+    appName: 'vue-app-1',
+    basename: routerBase || '/message-center',
+    debug: process.env.NODE_ENV === 'development',
+    enableParameterReceiving: true,
+    enableCrossAppNavigation: true,
+    onNavigationReceived: (event) => {
+      console.log('[VueApp1] Navigation event received:', event);
+    },
+    onParameterReceived: (event) => {
+      console.log('[VueApp1] Parameters received:', event);
+    },
+    onRouteChange: (event) => {
+      console.log('[VueApp1] Route changed:', event);
+    }
+  });
   
   // 挂载应用
   const domElement = container ? container.querySelector('#app') : '#app';
@@ -74,6 +96,11 @@ export async function unmount(props: any) {
     app.unmount();
     app = null;
     router = null;
+  }
+  
+  if (navigationAPI) {
+    navigationAPI.destroy();
+    navigationAPI = null;
   }
 }
 
