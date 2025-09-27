@@ -1,148 +1,110 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Card, Row, Col, Statistic, Typography, Switch, Space, Badge } from 'antd';
+import React, { useEffect } from 'react';
+import { Card, Row, Col, Statistic, Typography, Switch, Space, Badge, Alert } from 'antd';
 import { LineChart, AreaChart } from '../components/charts';
-import { WifiOutlined, ApiOutlined, UserOutlined, ShoppingOutlined } from '@ant-design/icons';
+import { WifiOutlined, ApiOutlined, UserOutlined, ShoppingOutlined, ReloadOutlined } from '@ant-design/icons';
+import { observer } from 'mobx-react-lite';
+import { dashboardStore } from '../store/DashboardStore';
 
 const { Title, Text } = Typography;
 
-interface RealTimeMetrics {
-  activeUsers: number;
-  orders: number;
-  revenue: number;
-  pageViews: number;
-}
-
-interface RealTimeDataPoint {
-  name: string;
-  value: number;
-  timestamp: string;
-}
-
-const RealTimeData: React.FC = () => {
-  const [isConnected, setIsConnected] = useState(true);
-  const [metrics, setMetrics] = useState<RealTimeMetrics>({
-    activeUsers: 1245,
-    orders: 23,
-    revenue: 15678.90,
-    pageViews: 3456,
-  });
-  
-  const [realtimeChart, setRealtimeChart] = useState<RealTimeDataPoint[]>([]);
-  const [performanceChart, setPerformanceChart] = useState<RealTimeDataPoint[]>([]);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
-
-  // 模拟实时数据更新
-  const generateRealTimeData = () => {
-    const now = new Date();
-    const timeStr = now.toLocaleTimeString();
-    
-    // 更新指标数据
-    setMetrics(prev => ({
-      activeUsers: prev.activeUsers + Math.floor(Math.random() * 20 - 10),
-      orders: prev.orders + Math.floor(Math.random() * 5),
-      revenue: prev.revenue + Math.random() * 500,
-      pageViews: prev.pageViews + Math.floor(Math.random() * 50),
-    }));
-
-    // 更新图表数据
-    setRealtimeChart(prev => {
-      const newData = [...prev];
-      newData.push({
-        name: timeStr,
-        value: Math.floor(Math.random() * 100) + 50,
-        timestamp: now.toISOString(),
-      });
-      
-      // 保持最近20个数据点
-      if (newData.length > 20) {
-        newData.shift();
-      }
-      return newData;
-    });
-
-    setPerformanceChart(prev => {
-      const newData = [...prev];
-      newData.push({
-        name: timeStr,
-        value: Math.floor(Math.random() * 200) + 100,
-        timestamp: now.toISOString(),
-      });
-      
-      // 保持最近20个数据点
-      if (newData.length > 20) {
-        newData.shift();
-      }
-      return newData;
-    });
-  };
-
+const RealTimeData: React.FC = observer(() => {
   useEffect(() => {
-    // 初始化数据
-    const initialData = [];
-    const initialPerformance = [];
-    for (let i = 19; i >= 0; i--) {
-      const time = new Date(Date.now() - i * 3000);
-      const timeStr = time.toLocaleTimeString();
-      
-      initialData.push({
-        name: timeStr,
-        value: Math.floor(Math.random() * 100) + 50,
-        timestamp: time.toISOString(),
-      });
-      
-      initialPerformance.push({
-        name: timeStr,
-        value: Math.floor(Math.random() * 200) + 100,
-        timestamp: time.toISOString(),
-      });
-    }
+    // 连接实时数据
+    dashboardStore.connectRealTime();
     
-    setRealtimeChart(initialData);
-    setPerformanceChart(initialPerformance);
+    return () => {
+      // 组件卸载时断开连接
+      dashboardStore.disconnectRealTime();
+    };
   }, []);
 
-  useEffect(() => {
-    if (isConnected) {
-      intervalRef.current = setInterval(generateRealTimeData, 3000);
+  const handleConnectionToggle = (checked: boolean) => {
+    if (checked) {
+      dashboardStore.connectRealTime();
     } else {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
+      dashboardStore.disconnectRealTime();
     }
+  };
 
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
-    };
-  }, [isConnected]);
+  const handleReconnect = () => {
+    dashboardStore.disconnectRealTime();
+    setTimeout(() => {
+      dashboardStore.connectRealTime();
+    }, 1000);
+  };
+
+  // 从Store获取实时数据
+  const { 
+    realTimeData, 
+    isRealTimeConnected, 
+    wsReconnectAttempts,
+    realTimeChartData,
+    loading 
+  } = dashboardStore;
+
+  // 格式化图表数据
+  const formatChartData = (data: any[]) => {
+    return data.map((item, index) => ({
+      name: new Date(Date.now() - (data.length - index - 1) * 3000).toLocaleTimeString(),
+      value: item.value || 0,
+      timestamp: new Date(Date.now() - (data.length - index - 1) * 3000).toISOString()
+    }));
+  };
 
   return (
-    <div style={{ padding: '24px' }}>
+    <div>
       <Row justify="space-between" align="middle" style={{ marginBottom: '24px' }}>
         <Col>
           <Title level={2}>实时数据监控</Title>
         </Col>
         <Col>
           <Space>
-            <Badge status={isConnected ? 'processing' : 'error'} />
-            <Text>{isConnected ? '已连接' : '已断开'}</Text>
+            <Badge status={isRealTimeConnected ? 'processing' : 'error'} />
+            <Text>{isRealTimeConnected ? '已连接' : '已断开'}</Text>
             <Switch
-              checked={isConnected}
-              onChange={setIsConnected}
+              checked={isRealTimeConnected}
+              onChange={handleConnectionToggle}
               checkedChildren="开启"
               unCheckedChildren="关闭"
+              loading={loading}
             />
+            {wsReconnectAttempts > 0 && (
+              <Badge count={wsReconnectAttempts} showZero>
+                <ReloadOutlined 
+                  onClick={handleReconnect}
+                  style={{ cursor: 'pointer', color: '#1890ff' }}
+                  title="重新连接"
+                />
+              </Badge>
+            )}
           </Space>
         </Col>
       </Row>
 
+      {/* 连接状态提示 */}
+      {!isRealTimeConnected && (
+        <Alert
+          message="实时连接已断开"
+          description={`重连尝试次数: ${wsReconnectAttempts}/5。点击重连按钮手动重连。`}
+          type="warning"
+          showIcon
+          closable
+          style={{ marginBottom: '16px' }}
+          action={
+            <Space>
+              <ReloadOutlined onClick={handleReconnect} />
+              重连
+            </Space>
+          }
+        />
+      )}
+
       <Row gutter={16} style={{ marginBottom: '24px' }}>
         <Col span={6}>
-          <Card>
+          <Card loading={loading}>
             <Statistic
               title="在线用户"
-              value={metrics.activeUsers}
+              value={realTimeData.activeUsers}
               precision={0}
               valueStyle={{ color: '#3f8600' }}
               prefix={<UserOutlined />}
@@ -150,10 +112,10 @@ const RealTimeData: React.FC = () => {
           </Card>
         </Col>
         <Col span={6}>
-          <Card>
+          <Card loading={loading}>
             <Statistic
               title="实时订单"
-              value={metrics.orders}
+              value={realTimeData.orders}
               precision={0}
               valueStyle={{ color: '#1890ff' }}
               prefix={<ShoppingOutlined />}
@@ -161,10 +123,10 @@ const RealTimeData: React.FC = () => {
           </Card>
         </Col>
         <Col span={6}>
-          <Card>
+          <Card loading={loading}>
             <Statistic
               title="实时收入"
-              value={metrics.revenue}
+              value={realTimeData.revenue}
               precision={2}
               valueStyle={{ color: '#722ed1' }}
               prefix="¥"
@@ -172,10 +134,10 @@ const RealTimeData: React.FC = () => {
           </Card>
         </Col>
         <Col span={6}>
-          <Card>
+          <Card loading={loading}>
             <Statistic
               title="页面访问"
-              value={metrics.pageViews}
+              value={realTimeData.pageViews}
               precision={0}
               valueStyle={{ color: '#fa8c16' }}
               prefix={<ApiOutlined />}
@@ -191,12 +153,17 @@ const RealTimeData: React.FC = () => {
               <Space>
                 <WifiOutlined />
                 <span>实时流量监控</span>
+                <Badge 
+                  status={isRealTimeConnected ? 'processing' : 'default'} 
+                  text={isRealTimeConnected ? '实时更新' : '暂停更新'}
+                />
               </Space>
             } 
             bordered={false}
+            loading={loading}
           >
             <LineChart 
-              data={realtimeChart}
+              data={formatChartData(realTimeChartData.traffic || [])}
               height={300}
               color="#52c41a"
               smooth={true}
@@ -209,12 +176,17 @@ const RealTimeData: React.FC = () => {
               <Space>
                 <ApiOutlined />
                 <span>系统性能监控</span>
+                <Badge 
+                  status={isRealTimeConnected ? 'processing' : 'default'} 
+                  text={isRealTimeConnected ? '实时更新' : '暂停更新'}
+                />
               </Space>
             } 
             bordered={false}
+            loading={loading}
           >
             <AreaChart 
-              data={performanceChart}
+              data={formatChartData(realTimeChartData.performance || [])}
               height={300}
               color="#fa541c"
               smooth={true}
@@ -224,6 +196,6 @@ const RealTimeData: React.FC = () => {
       </Row>
     </div>
   );
-};
+});
 
 export default RealTimeData;

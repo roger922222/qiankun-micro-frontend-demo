@@ -9,17 +9,21 @@ import { Layout, message } from 'antd';
 import { Helmet } from 'react-helmet-async';
 import { observer } from 'mobx-react-lite';
 
-// 导入页面组件
-import Dashboard from './pages/Dashboard';
-import Analytics from './pages/Analytics';
-import Reports from './pages/Reports';
-import RealTimeData from './pages/RealTimeData';
-import Visualization from './pages/Visualization';
+// 导入页面组件 - 使用懒加载
+import { Suspense, lazy } from 'react';
+import { Spin } from 'antd';
+
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const Analytics = lazy(() => import('./pages/Analytics'));
+const Reports = lazy(() => import('./pages/Reports'));
+const RealTimeData = lazy(() => import('./pages/RealTimeData'));
+const Visualization = lazy(() => import('./pages/Visualization'));
 
 // 导入布局组件
 import AppHeader from './components/Layout/AppHeader';
 import AppSidebar from './components/Layout/AppSidebar';
 import AppFooter from './components/Layout/AppFooter';
+import LoadingBoundary from './components/LoadingBoundary';
 
 // 导入样式
 import './styles/App.css';
@@ -103,6 +107,8 @@ const App: React.FC = observer(() => {
     globalLogger.info('Dashboard sample data initialized');
   };
 
+  const [sidebarCollapsed, setSidebarCollapsed] = React.useState(false);
+
   return (
     <>
       <Helmet>
@@ -110,24 +116,33 @@ const App: React.FC = observer(() => {
         <meta name="description" content="基于React和MobX的数据看板系统" />
       </Helmet>
 
-      <Layout className="dashboard-app-layout">
-        <AppHeader />
+      <Layout className="dashboard-app-layout" style={{ minHeight: '100vh' }}>
+        <AppHeader 
+          collapsed={sidebarCollapsed}
+          onCollapse={setSidebarCollapsed}
+        />
         
         <Layout>
-          <AppSidebar />
+          <AppSidebar collapsed={sidebarCollapsed} />
           
           <Layout className="dashboard-app-content">
-            <Content className="dashboard-app-main">
+            <Content className="dashboard-app-main" style={{ padding: '24px', minHeight: 'calc(100vh - 112px)' }}>
               <div className="dashboard-app-container">
-                <Routes>
-                  <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                  <Route path="/dashboard" element={<Dashboard />} />
-                  <Route path="/analytics" element={<Analytics />} />
-                  <Route path="/reports" element={<Reports />} />
-                  <Route path="/realtime" element={<RealTimeData />} />
-                  <Route path="/visualization" element={<Visualization />} />
-                  <Route path="*" element={<Navigate to="/dashboard" replace />} />
-                </Routes>
+                <LoadingBoundary 
+                  onError={(error, errorInfo) => {
+                    globalLogger.error('Page loading error:', error, errorInfo);
+                  }}
+                >
+                  <Routes>
+                    <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                    <Route path="/dashboard" element={<Dashboard />} />
+                    <Route path="/analytics" element={<Analytics />} />
+                    <Route path="/reports" element={<Reports />} />
+                    <Route path="/realtime" element={<RealTimeData />} />
+                    <Route path="/visualization" element={<Visualization />} />
+                    <Route path="*" element={<Navigate to="/dashboard" replace />} />
+                  </Routes>
+                </LoadingBoundary>
               </div>
             </Content>
             

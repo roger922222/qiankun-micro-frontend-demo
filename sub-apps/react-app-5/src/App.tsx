@@ -13,6 +13,9 @@ import { useSnapshot } from 'valtio';
 import GeneralSettings from './pages/GeneralSettings';
 import UserProfile from './pages/UserProfile';
 import SystemConfig from './pages/SystemConfig';
+import NotificationSettings from './pages/NotificationSettings';
+import SecuritySettings from './pages/SecuritySettings';
+import LanguageSettings from './pages/LanguageSettings';
 
 // 导入布局组件
 import AppHeader from './components/Layout/AppHeader';
@@ -73,14 +76,14 @@ const App: React.FC = () => {
 
     // 发送应用就绪事件
     globalEventBus.emit({
-      type: EVENT_TYPES.APP_READY,
+      type: 'APP_READY',
       source: 'react-settings',
       timestamp: new Date().toISOString(),
       id: `app-ready-${Date.now()}`,
       data: {
         appName: 'react-settings',
         version: '1.0.0',
-        features: ['user-settings', 'system-config', 'preferences']
+        features: ['user-settings', 'system-config', 'preferences', 'notifications', 'security', 'language']
       }
     });
 
@@ -125,6 +128,74 @@ const App: React.FC = () => {
         }
       };
 
+      // 初始化通知设置
+      settingsStore.notifications = {
+        email: {
+          system: true,
+          marketing: false,
+          security: true
+        },
+        push: {
+          desktop: true,
+          mobile: true,
+          browser: false
+        },
+        schedule: {
+          startTime: '09:00',
+          endTime: '18:00',
+          enabled: false
+        },
+        frequency: 'immediate',
+        categories: {
+          updates: true,
+          reminders: true,
+          alerts: true,
+          promotions: false
+        }
+      };
+
+      // 初始化安全设置
+      settingsStore.security = {
+        password: {
+          lastChanged: new Date().toISOString(),
+          requireStrong: true,
+          expiryDays: 90
+        },
+        twoFactor: {
+          enabled: false,
+          method: 'app',
+          backupCodes: []
+        },
+        sessions: {
+          current: 'session-' + Date.now(),
+          active: 1,
+          maxSessions: 5
+        },
+        loginSecurity: {
+          allowMultipleDevices: true,
+          sessionTimeout: 30,
+          requireVerification: false
+        },
+        devices: {
+          trusted: []
+        }
+      };
+
+      // 初始化语言设置
+      settingsStore.languageSettings = {
+        locale: 'zh-CN',
+        timezone: 'Asia/Shanghai',
+        dateFormat: 'YYYY-MM-DD',
+        timeFormat: '24h',
+        numberFormat: {
+          decimal: '.',
+          thousands: ',',
+          currency: '¥'
+        },
+        rtl: false,
+        fallbackLocale: 'en-US'
+      };
+
       settingsStore.system = {
         siteName: 'Qiankun微前端系统',
         version: '1.0.0',
@@ -162,6 +233,9 @@ const App: React.FC = () => {
                   <Route path="/general" element={<GeneralSettings />} />
                   <Route path="/profile" element={<UserProfile />} />
                   <Route path="/system" element={<SystemConfig />} />
+                  <Route path="/notifications" element={<NotificationSettings />} />
+                  <Route path="/security" element={<SecuritySettings />} />
+                  <Route path="/language" element={<LanguageSettings />} />
                   <Route path="*" element={<Navigate to="/general" replace />} />
                 </Routes>
               </div>
