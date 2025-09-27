@@ -3,21 +3,19 @@
  * 使用MobX进行状态管理
  */
 
-import React, { useEffect } from 'react';
+import React, { useEffect, lazy } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { Layout, message } from 'antd';
 import { Helmet } from 'react-helmet-async';
 import { observer } from 'mobx-react-lite';
 
 // 导入页面组件 - 使用懒加载
-import { Suspense, lazy } from 'react';
-import { Spin } from 'antd';
-
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const Analytics = lazy(() => import('./pages/Analytics'));
 const Reports = lazy(() => import('./pages/Reports'));
 const RealTimeData = lazy(() => import('./pages/RealTimeData'));
 const Visualization = lazy(() => import('./pages/Visualization'));
+const PerformanceMonitor = lazy(() => import('./pages/PerformanceMonitor'));
 
 // 导入布局组件
 import AppHeader from './components/Layout/AppHeader';
@@ -29,12 +27,15 @@ import LoadingBoundary from './components/LoadingBoundary';
 import './styles/App.css';
 
 // 导入共享库
-import { globalEventBus } from '@shared/communication/event-bus';
+// import { globalEventBus } from '@shared/communication/event-bus';
 import { globalLogger } from '@shared/utils/logger';
 import { EVENT_TYPES } from '@shared/types/events';
 
 // 导入MobX Store
 import { dashboardStore } from './store/DashboardStore';
+
+// 导入离线指示器
+import OfflineIndicator from './components/offline/OfflineIndicator';
 
 const { Content } = Layout;
 
@@ -69,30 +70,30 @@ const App: React.FC = observer(() => {
     };
 
     // 注册事件监听器
-    globalEventBus.on(EVENT_TYPES.THEME_CHANGE, handleGlobalEvent);
-    globalEventBus.on(EVENT_TYPES.USER_LOGOUT, handleGlobalEvent);
-    globalEventBus.on(EVENT_TYPES.LANGUAGE_CHANGE, handleGlobalEvent);
+    // globalEventBus.on(EVENT_TYPES.THEME_CHANGE, handleGlobalEvent);
+    // globalEventBus.on(EVENT_TYPES.USER_LOGOUT, handleGlobalEvent);
+    // globalEventBus.on(EVENT_TYPES.LANGUAGE_CHANGE, handleGlobalEvent);
 
     // 发送应用就绪事件
-    globalEventBus.emit({
-      type: 'APP_READY',
-      source: 'react-dashboard',
-      timestamp: new Date().toISOString(),
-      id: `app-ready-${Date.now()}`,
-      data: {
-        appName: 'react-dashboard',
-        version: '1.0.0',
-        features: ['data-visualization', 'analytics', 'reporting']
-      }
-    });
+    // globalEventBus.emit({
+    //   type: 'APP_READY',
+    //   source: 'react-dashboard',
+    //   timestamp: new Date().toISOString(),
+    //   id: `app-ready-${Date.now()}`,
+    //   data: {
+    //     appName: 'react-dashboard',
+    //     version: '1.0.0',
+    //     features: ['data-visualization', 'analytics', 'reporting']
+    //   }
+    // });
 
     // 初始化示例数据
     initializeSampleData();
 
     return () => {
-      globalEventBus.off(EVENT_TYPES.THEME_CHANGE, handleGlobalEvent);
-      globalEventBus.off(EVENT_TYPES.USER_LOGOUT, handleGlobalEvent);
-      globalEventBus.off(EVENT_TYPES.LANGUAGE_CHANGE, handleGlobalEvent);
+      // globalEventBus.off(EVENT_TYPES.THEME_CHANGE, handleGlobalEvent);
+      // globalEventBus.off(EVENT_TYPES.USER_LOGOUT, handleGlobalEvent);
+      // globalEventBus.off(EVENT_TYPES.LANGUAGE_CHANGE, handleGlobalEvent);
       
       globalLogger.info('Dashboard App unmounted');
     };
@@ -140,6 +141,7 @@ const App: React.FC = observer(() => {
                     <Route path="/reports" element={<Reports />} />
                     <Route path="/realtime" element={<RealTimeData />} />
                     <Route path="/visualization" element={<Visualization />} />
+                    <Route path="/performance" element={<PerformanceMonitor />} />
                     <Route path="*" element={<Navigate to="/dashboard" replace />} />
                   </Routes>
                 </LoadingBoundary>
@@ -149,6 +151,9 @@ const App: React.FC = observer(() => {
             <AppFooter />
           </Layout>
         </Layout>
+        
+        {/* 离线指示器 */}
+        <OfflineIndicator />
       </Layout>
     </>
   );

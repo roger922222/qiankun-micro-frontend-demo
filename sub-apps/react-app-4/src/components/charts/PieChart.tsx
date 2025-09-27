@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pie } from '@ant-design/charts';
+import ReactECharts from 'echarts-for-react';
 import { Spin } from 'antd';
 
 export interface PieChartData {
@@ -70,7 +70,26 @@ const PieChart: React.FC<PieChartProps> = ({
     );
   }
 
-  return <Pie {...config} />;
+  return <ReactECharts option={{
+    tooltip: {
+      trigger: 'item'
+    },
+    series: [
+      {
+        name: '数据',
+        type: 'pie',
+        radius: '50%',
+        data: data.map(item => ({ name: item[colorField], value: item[angleField] })),
+        emphasis: {
+          itemStyle: {
+            shadowBlur: 10,
+            shadowOffsetX: 0,
+            shadowColor: 'rgba(0, 0, 0, 0.5)'
+          }
+        }
+      }
+    ]
+  }} style={{ height }} />;
 };
 
 export default PieChart;

@@ -14,7 +14,6 @@
     "test:coverage": "vitest --coverage"
   },
   "dependencies": {
-    "@ant-design/charts": "^1.4.2",
     "@ant-design/icons": "^5.0.1",
     "@babel/core": "^7.28.4",
     "@testing-library/dom": "^10.4.1",
@@ -24,6 +23,10 @@
     "classnames": "^2.3.2",
     "dayjs": "^1.11.7",
     "docx-preview": "^0.1.18",
+    "echarts": "^5.6.0",
+    "echarts-for-react": "^3.0.2",
+    "html2canvas": "^1.4.1",
+    "jspdf": "^2.5.1",
     "lodash": "^4.17.21",
     "mobx": "^6.8.0",
     "mobx-react-lite": "^3.4.0",
@@ -37,6 +40,7 @@
     "react-router-dom": "^6.8.1",
     "styled-components": "^5.3.6",
     "terser": "^5.44.0",
+    "workbox-window": "^7.0.0",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {

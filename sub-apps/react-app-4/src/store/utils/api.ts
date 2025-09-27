@@ -14,7 +14,7 @@ export interface ApiConfig {
 
 // 默认配置
 const defaultConfig: ApiConfig = {
-  baseURL: process.env.REACT_APP_API_BASE_URL || '/api',
+  baseURL: (typeof process !== 'undefined' && process.env?.REACT_APP_API_BASE_URL) || '/api',
   timeout: 30000,
   retryCount: 3,
   retryDelay: 1000,

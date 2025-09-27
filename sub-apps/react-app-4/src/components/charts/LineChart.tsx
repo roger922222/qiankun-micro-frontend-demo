@@ -1,5 +1,5 @@
 import React from 'react';
-import { Line } from '@ant-design/charts';
+import ReactECharts from 'echarts-for-react';
 import { Spin } from 'antd';
 
 export interface LineChartData {
@@ -66,7 +66,32 @@ const LineChart: React.FC<LineChartProps> = ({
     );
   }
 
-  return <Line {...config} />;
+  return <ReactECharts option={{
+    tooltip: {
+      trigger: 'axis'
+    },
+    xAxis: {
+      type: 'category',
+      data: data.map(item => item[xField])
+    },
+    yAxis: {
+      type: 'value'
+    },
+    series: [
+      {
+        name: '数据',
+        type: 'line',
+        smooth: smooth,
+        data: data.map(item => item[yField]),
+        lineStyle: {
+          color: typeof color === 'string' ? color : color[0]
+        },
+        itemStyle: {
+          color: typeof color === 'string' ? color : color[0]
+        }
+      }
+    ]
+  }} style={{ height }} />;
 };
 
 export default LineChart;

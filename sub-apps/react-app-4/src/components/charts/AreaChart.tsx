@@ -1,5 +1,5 @@
 import React from 'react';
-import { Area } from '@ant-design/charts';
+import ReactECharts from 'echarts-for-react';
 import { Spin } from 'antd';
 
 export interface AreaChartData {
@@ -32,37 +32,43 @@ const AreaChart: React.FC<AreaChartProps> = ({
   color = '#1890ff',
   onDataUpdate,
 }) => {
-  const config = {
-    data,
-    height,
-    xField,
-    yField,
-    seriesField,
-    smooth,
-    color,
-    areaStyle: {
-      fillOpacity: 0.6,
-    },
-    line: {
-      size: 2,
-    },
-    point: {
-      size: 5,
-      shape: 'diamond',
-      style: {
-        fill: 'white',
-        stroke: typeof color === 'string' ? color : color[0],
-        lineWidth: 2,
-      },
-    },
+  const option = {
     tooltip: {
-      showMarkers: true,
+      trigger: 'axis',
+      axisPointer: {
+        type: 'cross',
+        label: {
+          backgroundColor: '#6a7985'
+        }
+      }
     },
-    interactions: [
+    xAxis: {
+      type: 'category',
+      boundaryGap: false,
+      data: data.map(item => item[xField])
+    },
+    yAxis: {
+      type: 'value'
+    },
+    series: [
       {
-        type: 'marker-active',
-      },
-    ],
+        name: '数据',
+        type: 'line',
+        smooth: smooth,
+        areaStyle: {
+          opacity: 0.6,
+          color: typeof color === 'string' ? color : color[0]
+        },
+        lineStyle: {
+          width: 2,
+          color: typeof color === 'string' ? color : color[0]
+        },
+        itemStyle: {
+          color: typeof color === 'string' ? color : color[0]
+        },
+        data: data.map(item => item[yField])
+      }
+    ]
   };
 
   if (loading) {
@@ -73,7 +79,7 @@ const AreaChart: React.FC<AreaChartProps> = ({
     );
   }
 
-  return <Area {...config} />;
+  return <ReactECharts option={option} style={{ height }} />;
 };
 
 export default AreaChart;

@@ -20,6 +20,9 @@ export default defineConfig({
     port: 3004,
     host: '0.0.0.0',
     cors: true,
+    hmr: {
+      overlay: false, // 禁用错误覆盖层以解决微前端环境下的 HTMLElement 构造函数错误
+    },
     headers: {
       'Access-Control-Allow-Origin': '*',
     },
@@ -50,20 +53,49 @@ export default defineConfig({
   },
 
   optimizeDeps: {
-    include: ['pdfjs-dist'],
+    include: [
+      'pdfjs-dist',
+      'html2canvas',
+      'jspdf',
+      'xlsx',
+      'workbox-window',
+      'echarts',
+      'echarts-for-react'
+    ],
+    exclude: ['@antv/g2plot', '@ant-design/charts'],
   },
   
   define: {
     global: 'globalThis',
+    'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
+    'process.env.REACT_APP_API_BASE_URL': JSON.stringify(process.env.REACT_APP_API_BASE_URL || '/api'),
+    'process.env.REACT_APP_WS_URL': JSON.stringify(process.env.REACT_APP_WS_URL || 'ws://localhost:8080/ws/dashboard'),
+    // 添加完整的 process 对象定义以解决微前端环境下的兼容性问题
+    'process.env': JSON.stringify({
+      NODE_ENV: process.env.NODE_ENV || 'development',
+      REACT_APP_API_BASE_URL: process.env.REACT_APP_API_BASE_URL || '/api',
+      REACT_APP_WS_URL: process.env.REACT_APP_WS_URL || 'ws://localhost:8080/ws/dashboard',
+    }),
+    // 为了向后兼容，也定义 process 对象本身
+    'process': JSON.stringify({
+      env: {
+        NODE_ENV: process.env.NODE_ENV || 'development',
+        REACT_APP_API_BASE_URL: process.env.REACT_APP_API_BASE_URL || '/api',
+        REACT_APP_WS_URL: process.env.REACT_APP_WS_URL || 'ws://localhost:8080/ws/dashboard',
+      }
+    }),
   },
   
   build: {
     outDir: 'dist',
     sourcemap: true,
     rollupOptions: {
+      external: [/^@shared/],
       output: {
         manualChunks: {
           'pdfjs-dist': ['pdfjs-dist'],
+          'export-utils': ['html2canvas', 'jspdf', 'xlsx'],
+          'sw-utils': ['workbox-window']
         },
       },
     },

@@ -19,6 +19,10 @@ import './styles/index.css';
 import App from './App';
 import ErrorFallback from './components/ErrorFallback';
 
+// 导入优化管理器
+import { serviceWorkerManager } from './utils/service-worker-manager';
+import { rumCollector } from './utils/rum-collector';
+
 // 导入共享库
 import { globalLogger } from '@shared/utils/logger';
 
@@ -26,31 +30,31 @@ import { globalLogger } from '@shared/utils/logger';
 import { createLifecyle, getMicroApp } from 'vite-plugin-legacy-qiankun';
 
 // 导入导航集成
-import { createMicroAppNavigation } from '@shared/communication/navigation/micro-app-integration';
+// import { createMicroAppNavigation } from '@shared/communication/navigation/micro-app-integration';
 
 // 全局变量保存 React root 实例，避免重复创建
 let reactRoot: any = null;
 
 // 创建导航API实例
-const navigationAPI = createMicroAppNavigation({
-  appName: 'react-app-4',
-  basename: window.__POWERED_BY_QIANKUN__ ? '/data-dashboard' : '/',
-  debug: process.env.NODE_ENV === 'development',
-  enableParameterReceiving: true,
-  enableCrossAppNavigation: true,
-  onNavigationReceived: (event) => {
-    console.log('[ReactApp4] Navigation event received:', event);
-  },
-  onParameterReceived: (event) => {
-    console.log('[ReactApp4] Parameters received:', event);
-  },
-  onRouteChange: (event) => {
-    console.log('[ReactApp4] Route changed:', event);
-  }
-});
+// const navigationAPI = createMicroAppNavigation({
+//   appName: 'react-app-4',
+//   basename: window.__POWERED_BY_QIANKUN__ ? '/data-dashboard' : '/',
+//   debug: (typeof process !== 'undefined' && process.env?.NODE_ENV === 'development') || false,
+//   enableParameterReceiving: true,
+//   enableCrossAppNavigation: true,
+//   onNavigationReceived: (event) => {
+//     console.log('[ReactApp4] Navigation event received:', event);
+//   },
+//   onParameterReceived: (event) => {
+//     console.log('[ReactApp4] Parameters received:', event);
+//   },
+//   onRouteChange: (event) => {
+//     console.log('[ReactApp4] Route changed:', event);
+//   }
+// });
 
 // 将导航API挂载到全局，供组件使用
-(window as any).__MICRO_APP_NAVIGATION__ = navigationAPI;
+// (window as any).__MICRO_APP_NAVIGATION__ = navigationAPI;
 
 /**
  * 渲染应用
@@ -109,11 +113,8 @@ function render(props?: any) {
   return reactRoot;
 }
 
-// 使用插件提供的辅助函数
-const microApp = getMicroApp('react-dashboard');
-
 // 判断是否在qiankun环境下运行
-if (microApp.__POWERED_BY_QIANKUN__) {
+if (window.__POWERED_BY_QIANKUN__) {
   // 使用createLifecyle导出生命周期函数
   createLifecyle('react-dashboard', {
     bootstrap() {
@@ -130,9 +131,18 @@ if (microApp.__POWERED_BY_QIANKUN__) {
       }
       
       render(props);
+      
+// 初始化性能监控和Service Worker
+if (typeof process !== 'undefined' && process.env?.NODE_ENV === 'production') {
+        rumCollector.startCollection();
+        serviceWorkerManager.register().catch(console.error);
+      }
     },
     unmount() {
       globalLogger.info('React Dashboard app unmounting');
+      
+      // 停止性能监控
+      rumCollector.stopCollection();
       
       // 使用保存的 root 实例进行卸载
       if (reactRoot) {
@@ -144,6 +154,12 @@ if (microApp.__POWERED_BY_QIANKUN__) {
 } else {
   // 独立运行模式
   render();
+  
+// 初始化性能监控和Service Worker
+if (typeof process !== 'undefined' && process.env?.NODE_ENV === 'production') {
+    rumCollector.startCollection();
+    serviceWorkerManager.register().catch(console.error);
+  }
 }
 
 // 开发模式下的热更新支持

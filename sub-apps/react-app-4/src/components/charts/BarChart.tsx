@@ -1,5 +1,5 @@
 import React from 'react';
-import { Column } from '@ant-design/charts';
+import ReactECharts from 'echarts-for-react';
 import { Spin } from 'antd';
 
 export interface BarChartData {
@@ -29,36 +29,34 @@ const BarChart: React.FC<BarChartProps> = ({
   color = '#1890ff',
   onDataUpdate,
 }) => {
-  const config = {
-    data,
-    height,
-    xField,
-    yField,
-    seriesField,
-    color,
-    label: {
-      position: 'middle' as const,
-      style: {
-        fill: '#FFFFFF',
-        opacity: 0.6,
-      },
+  const option = {
+    tooltip: {
+      trigger: 'axis',
+      axisPointer: {
+        type: 'shadow'
+      }
     },
     xAxis: {
-      label: {
-        autoHide: true,
-        autoRotate: false,
-      },
+      type: 'category',
+      data: data.map(item => item[xField])
     },
-    meta: {
-      [yField]: {
-        alias: '数值',
-      },
+    yAxis: {
+      type: 'value'
     },
-    interactions: [
+    series: [
       {
-        type: 'element-active',
-      },
-    ],
+        name: '数值',
+        type: 'bar',
+        data: data.map(item => item[yField]),
+        itemStyle: {
+          color: typeof color === 'string' ? color : color[0]
+        },
+        label: {
+          show: true,
+          position: 'top'
+        }
+      }
+    ]
   };
 
   if (loading) {
@@ -69,7 +67,7 @@ const BarChart: React.FC<BarChartProps> = ({
     );
   }
 
-  return <Column {...config} />;
+  return <ReactECharts option={option} style={{ height }} />;
 };
 
 export default BarChart;

@@ -483,7 +483,7 @@ class DashboardStore {
     }
 
     try {
-      const wsUrl = process.env.REACT_APP_WS_URL || 'ws://localhost:8080/ws/dashboard';
+      const wsUrl = (typeof process !== 'undefined' && process.env?.REACT_APP_WS_URL) || 'ws://localhost:8080/ws/dashboard';
       const ws = new WebSocket(wsUrl);
 
       ws.onopen = () => {

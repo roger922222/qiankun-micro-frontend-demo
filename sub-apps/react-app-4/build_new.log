@@ -1,0 +1,9 @@
+
+> react-dashboard@1.0.0 build
+> vite build
+
+vite v4.5.14 building for production...
+transforming...
+✓ 3154 modules transformed.
+✓ built in 3.31s
+error during build:

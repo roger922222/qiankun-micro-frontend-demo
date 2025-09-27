@@ -337,8 +337,8 @@ export function createMiddleware(
   return {
     name,
     process: processor,
-    priority: options?.priority,
-    enabled: options?.enabled
+    priority: options?.priority || 0,
+    enabled: options?.enabled !== false
   };
 }
 
