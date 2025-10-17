@@ -1,0 +1,264 @@
+/* MessageCenter 组件样式 - 强制样式优先级 */
+.vue-message-center {
+  width: 100% !important;
+  height: 100% !important;
+  position: relative !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji' !important;
+}
+
+.vue-message-center .message-center {
+  padding: 16px !important;
+  min-height: calc(100vh - 200px) !important;
+}
+
+.vue-message-center .message-center-header {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  margin-bottom: 16px !important;
+  padding: 16px !important;
+  background: #f5f5f5 !important;
+  border-radius: 6px !important;
+}
+
+.vue-message-center .message-center-header h2 {
+  margin: 0 !important;
+  color: #1890ff !important;
+  font-size: 20px !important;
+  font-weight: 600 !important;
+}
+
+.vue-message-center .message-center-header p {
+  margin: 0 !important;
+  color: #666 !important;
+  font-size: 14px !important;
+}
+
+.vue-message-center .message-filters {
+  display: flex !important;
+  gap: 12px !important;
+  margin-bottom: 16px !important;
+  flex-wrap: wrap !important;
+}
+
+.vue-message-center .message-list {
+  background: #fff !important;
+  border-radius: 6px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+}
+
+.vue-message-center .message-item {
+  padding: 16px !important;
+  border-bottom: 1px solid #f0f0f0 !important;
+  cursor: pointer !important;
+  transition: background-color 0.2s !important;
+}
+
+.vue-message-center .message-item:last-child {
+  border-bottom: none !important;
+}
+
+.vue-message-center .message-item:hover {
+  background-color: #f5f5f5 !important;
+}
+
+.vue-message-center .message-item.unread {
+  background-color: #e6f7ff !important;
+  border-left: 4px solid #1890ff !important;
+}
+
+/* 确保 Ant Design 组件样式正确显示 */
+.vue-message-center .ant-card {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+}
+
+.vue-message-center .ant-card-head {
+  border-bottom: 1px solid #f0f0f0 !important;
+}
+
+.vue-message-center .ant-card-body {
+  padding: 16px !important;
+}
+
+.vue-message-center .ant-list-item {
+  padding: 12px 16px !important;
+  border-bottom: 1px solid #f0f0f0 !important;
+}
+
+.vue-message-center .ant-list-item:hover {
+  background-color: #f5f5f5 !important;
+}
+
+.vue-message-center .ant-tag {
+  margin: 0 !important;
+}
+
+.vue-message-center .ant-button {
+  margin-left: 8px !important;
+}
+
+.vue-message-center .ant-divider {
+  margin: 16px 0 !important;
+}
+
+.vue-message-center .ant-space {
+  gap: 8px !important;
+}
+
+.vue-message-center .ant-badge {
+  font-size: 12px !important;
+}
+
+.vue-message-center .message-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 8px;
+}
+
+.vue-message-center .message-title {
+  font-weight: 600;
+  color: #262626;
+  margin: 0;
+  font-size: 16px;
+}
+
+.vue-message-center .message-time {
+  color: #999;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.vue-message-center .message-content {
+  color: #595959;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.vue-message-center .message-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 8px;
+}
+
+.vue-message-center .message-type {
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  background: #f0f0f0;
+  color: #666;
+}
+
+.vue-message-center .message-type.system {
+  background: #fff2e8;
+  color: #fa8c16;
+}
+
+.vue-message-center .message-type.notification {
+  background: #e6f7ff;
+  color: #1890ff;
+}
+
+.vue-message-center .message-type.alert {
+  background: #fff2f0;
+  color: #f5222d;
+}
+
+.vue-message-center .message-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.vue-message-center .pagination-wrapper {
+  margin-top: 16px;
+  text-align: center;
+}
+
+.vue-message-center .empty-state {
+  text-align: center;
+  padding: 48px 16px;
+  color: #999;
+}
+
+.vue-message-center .empty-state .ant-empty-image {
+  margin-bottom: 16px;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .vue-message-center .message-center-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+  
+  .vue-message-center .message-filters {
+    flex-direction: column;
+  }
+  
+  .vue-message-center .message-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+  }
+  
+  .vue-message-center .message-meta {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+}
+
+/* 暗色主题 */
+[data-theme="dark"] .vue-message-center .message-center {
+  background: #141414;
+}
+
+[data-theme="dark"] .vue-message-center .message-center-header {
+  background: #1f1f1f;
+  border: 1px solid #303030;
+}
+
+[data-theme="dark"] .vue-message-center .message-center-header h2 {
+  color: #1890ff;
+}
+
+[data-theme="dark"] .vue-message-center .message-center-header p {
+  color: #ccc;
+}
+
+[data-theme="dark"] .vue-message-center .message-list {
+  background: #1f1f1f;
+  border: 1px solid #303030;
+}
+
+[data-theme="dark"] .vue-message-center .message-item {
+  border-bottom-color: #303030;
+}
+
+[data-theme="dark"] .vue-message-center .message-item:hover {
+  background-color: #262626;
+}
+
+[data-theme="dark"] .vue-message-center .message-item.unread {
+  background-color: #111b26;
+  border-left-color: #1890ff;
+}
+
+[data-theme="dark"] .vue-message-center .message-title {
+  color: #fff;
+}
+
+[data-theme="dark"] .vue-message-center .message-content {
+  color: #ccc;
+}
+
+[data-theme="dark"] .vue-message-center .message-type {
+  background: #262626;
+  color: #ccc;
+}
+
+[data-theme="dark"] .vue-message-center .empty-state {
+  color: #666;
+}

@@ -35,6 +35,13 @@
         <span>通知中心</span>
       </a-menu-item>
       
+      <a-menu-item key="/push">
+        <template #icon>
+          <send-outlined />
+        </template>
+        <span>消息推送</span>
+      </a-menu-item>
+      
       <a-menu-item key="/communication-demo">
         <template #icon>
           <api-outlined />
@@ -94,6 +101,7 @@ import { useRoute, useRouter } from 'vue-router';
 import {
   MessageOutlined,
   BellOutlined,
+  SendOutlined,
   ApiOutlined,
   AppstoreOutlined,
   HomeOutlined,

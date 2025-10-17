@@ -1,0 +1,10 @@
+
+> vue-message-center@1.0.0 dev
+> vite --port 3006 --host 0.0.0.0
+
+
+  VITE v4.5.14  ready in 167 ms
+
+  ➜  Local:   http://localhost:3006/
+  ➜  Network: http://192.168.157.39:3006/
+  ➜  Network: http://10.254.68.201:3006/

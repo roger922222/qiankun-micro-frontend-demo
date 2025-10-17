@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+<script>
+(function (){
+const global = (0, eval)('window')
+const name = 'vue-message-center'
+
+    const proxy = global.proxy
+    let publicPath = (proxy && proxy.__INJECTED_PUBLIC_PATH_BY_QIANKUN__) || ''
+    publicPath = publicPath.slice(0, publicPath.length - 1)
+    global.legacyQiankun = global.legacyQiankun || {}
+    global.legacyQiankun[name] = global.legacyQiankun[name] || {}
+    Object.assign(global.legacyQiankun[name], {
+      proxy,
+      publicPath,
+      '__INJECTED_PUBLIC_PATH_BY_QIANKUN__': proxy && proxy.__INJECTED_PUBLIC_PATH_BY_QIANKUN__,
+      '__POWERED_BY_QIANKUN__': proxy && proxy.__INJECTED_PUBLIC_PATH_BY_QIANKUN__,
+    })})()
+</script>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vue Message Center</title>
+    <!-- replace by vite-plugin-legacy-qiankun <script type="module" crossorigin src="/vue-message-center/assets/index-62fd3789.js"></script> -->
+    <link rel="modulepreload" crossorigin href="/vue-message-center/assets/vendor-c436ba56.js">
+    <link rel="modulepreload" crossorigin href="/vue-message-center/assets/vue-router-fc93879f.js">
+    <link rel="modulepreload" crossorigin href="/vue-message-center/assets/antd-a22e6ac5.js">
+    <link rel="stylesheet" href="/vue-message-center/assets/style.e656821e.css">
+  </head>
+  <body>
+    <div id="app"></div>
+    
+  <script>
+(function (){
+const global = (0, eval)('window')
+const name = 'vue-message-center'
+
+    const app = global.legacyQiankun[name]
+    if (!app.proxy) return
+    window[name] = {
+      bootstrap: (...args) => app.dynamicImport.then(() => app.lifecyle.bootstrap(...args)),
+      mount: (...args) => app.dynamicImport.then(() => app.lifecyle.mount(...args)),
+      unmount: (...args) => app.dynamicImport.then(() => app.lifecyle.unmount(...args)),
+      update: (...args) => app.dynamicImport.then(() => app.lifecyle.update(...args)),
+    }})()
+</script></body>
+</html>

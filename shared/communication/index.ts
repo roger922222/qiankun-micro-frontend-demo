@@ -6,6 +6,7 @@
 // 基础通信系统
 export * from './event-bus';
 export * from './global-state';
+export * from './auth-bridge';
 
 // 中间件系统
 export * from './middleware';

@@ -11,7 +11,7 @@
   border-bottom: 1px solid var(--color-border-secondary);
   box-shadow: var(--shadow-sm);
   position: relative;
-  z-index: var(--z-fixed);
+  z-index: 9999 !important;
 }
 
 .app-header-left {

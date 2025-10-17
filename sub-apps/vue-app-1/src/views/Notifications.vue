@@ -1,5 +1,5 @@
 <template>
-  <div class="notifications">
+  <div class="vue-notifications" v-if="isComponentReady">
     <div class="notifications-header">
       <h2>通知中心</h2>
       <a-space>
@@ -12,7 +12,6 @@
         <span>桌面通知</span>
       </a-space>
     </div>
-
     <a-row :gutter="16">
       <a-col :span="24">
         <a-card title="通知设置">
@@ -94,16 +93,23 @@
       </a-col>
     </a-row>
   </div>
+  
+  <!-- 加载状态 -->
+  <div v-else class="loading-container">
+    <a-spin size="large" />
+    <p>正在初始化通知中心...</p>
+  </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, nextTick } from 'vue';
 import { useStore } from 'vuex';
 import { message } from 'ant-design-vue';
 
 const store = useStore();
 
 // 响应式数据
+const isComponentReady = ref(false);
 const notificationEnabled = ref(true);
 const notificationMethods = ref(['browser', 'popup']);
 const notificationTypes = ref(['system', 'user', 'order']);
@@ -252,46 +258,29 @@ const formatTime = (timeString: string) => {
   return new Date(timeString).toLocaleString('zh-CN');
 };
 
+// 定义 emit
+const emit = defineEmits<{
+  'component-ready': [componentName: string];
+  'component-error': [error: Error];
+}>();
+
 // 生命周期
-onMounted(() => {
-  // 加载保存的设置
-  const savedMethods = localStorage.getItem('notification-methods');
-  const savedTypes = localStorage.getItem('notification-types');
-  
-  if (savedMethods) {
-    notificationMethods.value = JSON.parse(savedMethods);
-  }
-  
-  if (savedTypes) {
-    notificationTypes.value = JSON.parse(savedTypes);
-  }
-  
-  // 请求通知权限
-  if ('Notification' in window && Notification.permission === 'default') {
-    Notification.requestPermission();
+onMounted(async () => {
+  try {
+    // 简化的组件初始化流程
+    await store.dispatch('fetchNotifications');
+    isComponentReady.value = true;
+    
+    // 通知父组件组件已就绪
+    emit('component-ready', 'Notifications');
+  } catch (error) {
+    console.error('Notifications 初始化失败:', error);
+    // 降级处理：延迟后仍然显示组件
+    setTimeout(() => {
+      isComponentReady.value = true;
+      emit('component-ready', 'Notifications');
+    }, 500);
   }
 });
+
 </script>
-
-<style scoped>
-.notifications {
-  padding: 16px;
-}
-
-.notifications-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-}
-
-.notifications-header h2 {
-  margin: 0;
-}
-
-.ant-checkbox-group {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-</style>

@@ -1,0 +1,256 @@
+/* MessagePush 组件样式 */
+.vue-message-push {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.vue-message-push .message-push {
+  padding: 16px;
+  min-height: calc(100vh - 200px);
+}
+
+.vue-message-push .page-header {
+  margin-bottom: 24px;
+  padding: 24px;
+  background: #f5f5f5;
+  border-radius: 6px;
+}
+
+.vue-message-push .page-header h2 {
+  margin: 0 0 8px 0;
+  color: #1890ff;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.vue-message-push .page-header p {
+  margin: 0;
+  color: #666;
+  font-size: 14px;
+}
+
+.vue-message-push .push-tabs {
+  background: #fff;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.vue-message-push .push-form {
+  padding: 24px;
+}
+
+.vue-message-push .form-section {
+  margin-bottom: 24px;
+}
+
+.vue-message-push .form-section:last-child {
+  margin-bottom: 0;
+}
+
+.vue-message-push .section-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #262626;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.vue-message-push .form-row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+  align-items: flex-start;
+}
+
+.vue-message-push .form-row .ant-form-item {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+.vue-message-push .form-actions {
+  text-align: right;
+  padding-top: 16px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.vue-message-push .preview-section {
+  padding: 24px;
+  background: #fafafa;
+  border-top: 1px solid #f0f0f0;
+}
+
+.vue-message-push .preview-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #262626;
+  margin-bottom: 16px;
+}
+
+.vue-message-push .message-preview {
+  background: #fff;
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  padding: 16px;
+  min-height: 120px;
+}
+
+.vue-message-push .preview-content {
+  color: #595959;
+  line-height: 1.6;
+}
+
+.vue-message-push .preview-empty {
+  color: #bfbfbf;
+  font-style: italic;
+  text-align: center;
+  padding: 32px;
+}
+
+.vue-message-push .recipient-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.vue-message-push .schedule-info {
+  background: #e6f7ff;
+  border: 1px solid #91d5ff;
+  border-radius: 6px;
+  padding: 12px;
+  margin-top: 16px;
+}
+
+.vue-message-push .schedule-info .ant-typography {
+  margin: 0;
+  color: #1890ff;
+}
+
+.vue-message-push .push-history {
+  padding: 24px;
+}
+
+.vue-message-push .history-filters {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.vue-message-push .history-table {
+  background: #fff;
+  border-radius: 6px;
+}
+
+.vue-message-push .status-tag {
+  font-size: 12px;
+}
+
+.vue-message-push .status-tag.success {
+  background: #f6ffed;
+  color: #52c41a;
+  border: 1px solid #b7eb8f;
+}
+
+.vue-message-push .status-tag.pending {
+  background: #fff7e6;
+  color: #fa8c16;
+  border: 1px solid #ffd591;
+}
+
+.vue-message-push .status-tag.failed {
+  background: #fff2f0;
+  color: #f5222d;
+  border: 1px solid #ffccc7;
+}
+
+.vue-message-push .action-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .vue-message-push .form-row {
+    flex-direction: column;
+  }
+  
+  .vue-message-push .history-filters {
+    flex-direction: column;
+  }
+  
+  .vue-message-push .action-buttons {
+    flex-direction: column;
+  }
+  
+  .vue-message-push .page-header {
+    padding: 16px;
+  }
+  
+  .vue-message-push .push-form,
+  .vue-message-push .preview-section,
+  .vue-message-push .push-history {
+    padding: 16px;
+  }
+}
+
+/* 暗色主题 */
+[data-theme="dark"] .vue-message-push .message-push {
+  background: #141414;
+}
+
+[data-theme="dark"] .vue-message-push .page-header {
+  background: #1f1f1f;
+  border: 1px solid #303030;
+}
+
+[data-theme="dark"] .vue-message-push .push-tabs {
+  background: #1f1f1f;
+  border: 1px solid #303030;
+}
+
+[data-theme="dark"] .vue-message-push .page-header h2 {
+  color: #1890ff;
+}
+
+[data-theme="dark"] .vue-message-push .page-header p {
+  color: #ccc;
+}
+
+[data-theme="dark"] .vue-message-push .section-title {
+  color: #fff;
+  border-bottom-color: #303030;
+}
+
+[data-theme="dark"] .vue-message-push .preview-section {
+  background: #262626;
+  border-top-color: #303030;
+}
+
+[data-theme="dark"] .vue-message-push .preview-title {
+  color: #fff;
+}
+
+[data-theme="dark"] .vue-message-push .message-preview {
+  background: #1f1f1f;
+  border-color: #303030;
+}
+
+[data-theme="dark"] .vue-message-push .preview-content {
+  color: #ccc;
+}
+
+[data-theme="dark"] .vue-message-push .preview-empty {
+  color: #666;
+}
+
+[data-theme="dark"] .vue-message-push .form-actions {
+  border-top-color: #303030;
+}
+
+[data-theme="dark"] .vue-message-push .history-table {
+  background: #1f1f1f;
+}

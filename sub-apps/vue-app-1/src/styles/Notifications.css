@@ -1,0 +1,322 @@
+/* Notifications 组件样式 */
+.vue-notifications {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.vue-notifications .notifications {
+  padding: 16px;
+  min-height: calc(100vh - 200px);
+  background: #f5f5f5;
+}
+
+.vue-notifications .notifications-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding: 16px;
+  background: #fff;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.vue-notifications .notifications-header h2 {
+  margin: 0;
+  color: #1890ff;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.vue-notifications .notifications-header p {
+  margin: 0;
+  color: #666;
+  font-size: 14px;
+}
+
+.vue-notifications .notification-filters {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.vue-notifications .notifications-list {
+  background: #fff;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.vue-notifications .notification-item {
+  padding: 16px;
+  border-bottom: 1px solid #f0f0f0;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.vue-notifications .notification-item:last-child {
+  border-bottom: none;
+}
+
+.vue-notifications .notification-item:hover {
+  background-color: #f5f5f5;
+}
+
+.vue-notifications .notification-item.unread {
+  background-color: #e6f7ff;
+  border-left: 4px solid #1890ff;
+}
+
+.vue-notifications .notification-item.unread::before {
+  content: '';
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 8px;
+  height: 8px;
+  background: #1890ff;
+  border-radius: 50%;
+}
+
+.vue-notifications .notification-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 8px;
+}
+
+.vue-notifications .notification-title {
+  font-weight: 600;
+  color: #262626;
+  margin: 0;
+  font-size: 16px;
+  flex: 1;
+  margin-right: 16px;
+}
+
+.vue-notifications .notification-time {
+  color: #999;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.vue-notifications .notification-content {
+  color: #595959;
+  line-height: 1.5;
+  margin: 0 0 8px 0;
+}
+
+.vue-notifications .notification-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 8px;
+}
+
+.vue-notifications .notification-type {
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  background: #f0f0f0;
+  color: #666;
+}
+
+.vue-notifications .notification-type.info {
+  background: #e6f7ff;
+  color: #1890ff;
+}
+
+.vue-notifications .notification-type.success {
+  background: #f6ffed;
+  color: #52c41a;
+}
+
+.vue-notifications .notification-type.warning {
+  background: #fff7e6;
+  color: #fa8c16;
+}
+
+.vue-notifications .notification-type.error {
+  background: #fff2f0;
+  color: #f5222d;
+}
+
+.vue-notifications .notification-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.vue-notifications .notification-priority {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+}
+
+.vue-notifications .priority-high {
+  color: #f5222d;
+}
+
+.vue-notifications .priority-medium {
+  color: #fa8c16;
+}
+
+.vue-notifications .priority-low {
+  color: #52c41a;
+}
+
+.vue-notifications .bulk-actions {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding: 12px;
+  background: #fff;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.vue-notifications .pagination-wrapper {
+  margin-top: 16px;
+  text-align: center;
+}
+
+.vue-notifications .empty-state {
+  text-align: center;
+  padding: 48px 16px;
+  color: #999;
+}
+
+.vue-notifications .empty-state .ant-empty-image {
+  margin-bottom: 16px;
+}
+
+.vue-notifications .notification-detail-modal .modal-content {
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.vue-notifications .notification-detail-modal .detail-header {
+  border-bottom: 1px solid #f0f0f0;
+  padding-bottom: 16px;
+  margin-bottom: 16px;
+}
+
+.vue-notifications .notification-detail-modal .detail-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #262626;
+  margin: 0 0 8px 0;
+}
+
+.vue-notifications .notification-detail-modal .detail-meta {
+  display: flex;
+  gap: 16px;
+  color: #666;
+  font-size: 14px;
+}
+
+.vue-notifications .notification-detail-modal .detail-content {
+  line-height: 1.6;
+  color: #595959;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .vue-notifications .notifications-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+  
+  .vue-notifications .notification-filters {
+    flex-direction: column;
+  }
+  
+  .vue-notifications .notification-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+  }
+  
+  .vue-notifications .notification-title {
+    margin-right: 0;
+  }
+  
+  .vue-notifications .notification-meta {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+  
+  .vue-notifications .bulk-actions {
+    flex-direction: column;
+  }
+}
+
+/* 暗色主题 */
+[data-theme="dark"] .vue-notifications .notifications {
+  background: #141414;
+}
+
+[data-theme="dark"] .vue-notifications .notifications-header h2 {
+  color: #fff;
+}
+
+[data-theme="dark"] .vue-notifications .notifications-header {
+  background: #1f1f1f;
+  border: 1px solid #303030;
+}
+
+[data-theme="dark"] .vue-notifications .notifications-list {
+  background: #1f1f1f;
+  border: 1px solid #303030;
+}
+
+[data-theme="dark"] .vue-notifications .notification-item {
+  border-bottom-color: #303030;
+}
+
+[data-theme="dark"] .vue-notifications .notification-item:hover {
+  background-color: #262626;
+}
+
+[data-theme="dark"] .vue-notifications .notification-item.unread {
+  background-color: #111b26;
+  border-left-color: #1890ff;
+}
+
+[data-theme="dark"] .vue-notifications .notification-title {
+  color: #fff;
+}
+
+[data-theme="dark"] .vue-notifications .notification-content {
+  color: #ccc;
+}
+
+[data-theme="dark"] .vue-notifications .notification-type {
+  background: #262626;
+  color: #ccc;
+}
+
+[data-theme="dark"] .vue-notifications .bulk-actions {
+  background: #1f1f1f;
+  border: 1px solid #303030;
+}
+
+[data-theme="dark"] .vue-notifications .empty-state {
+  color: #666;
+}
+
+[data-theme="dark"] .vue-notifications .notification-detail-modal .detail-header {
+  border-bottom-color: #303030;
+}
+
+[data-theme="dark"] .vue-notifications .notification-detail-modal .detail-title {
+  color: #fff;
+}
+
+[data-theme="dark"] .vue-notifications .notification-detail-modal .detail-content {
+  color: #ccc;
+}

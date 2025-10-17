@@ -1,0 +1,306 @@
+/**
+ * 系统监控应用全局样式
+ * 针对 qiankun 微前端环境优化
+ */
+
+/* 重置样式 */
+.vue-system-monitor * {
+  box-sizing: border-box;
+}
+
+.vue-system-monitor {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif !important;
+  width: 100% !important;
+  height: 100% !important;
+  position: relative !important;
+}
+
+/* 布局样式 */
+.vue-system-monitor .monitor-app-layout {
+  min-height: 100vh !important;
+}
+
+.vue-system-monitor .monitor-app-content {
+  background: #f0f2f5 !important;
+}
+
+.vue-system-monitor .monitor-app-main {
+  margin: 24px !important;
+  padding: 24px !important;
+  background: #fff !important;
+  border-radius: 8px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+}
+
+.vue-system-monitor .monitor-app-container {
+  max-width: 1200px !important;
+  margin: 0 auto !important;
+}
+
+/* 监控卡片样式 */
+.vue-system-monitor .metric-card {
+  transition: all 0.3s ease !important;
+  border-radius: 8px !important;
+  padding: 20px !important;
+  background: #fff !important;
+  border: 1px solid #f0f0f0 !important;
+  margin-bottom: 16px !important;
+}
+
+.vue-system-monitor .metric-card:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1) !important;
+  border-color: #1890ff !important;
+}
+
+.vue-system-monitor .metric-value {
+  font-size: 32px !important;
+  font-weight: bold !important;
+  color: #1890ff !important;
+  margin-bottom: 8px !important;
+}
+
+.vue-system-monitor .metric-label {
+  color: #666 !important;
+  font-size: 14px !important;
+}
+
+/* 状态指示器样式 */
+.vue-system-monitor .status-indicator {
+  display: inline-block !important;
+  width: 8px !important;
+  height: 8px !important;
+  border-radius: 50% !important;
+  margin-right: 8px !important;
+}
+
+.vue-system-monitor .status-running {
+  background-color: #52c41a !important;
+  color: #52c41a !important;
+}
+
+.vue-system-monitor .status-warning {
+  background-color: #faad14 !important;
+  color: #faad14 !important;
+}
+
+.vue-system-monitor .status-error {
+  background-color: #ff4d4f !important;
+  color: #ff4d4f !important;
+}
+
+.vue-system-monitor .status-stopped {
+  background-color: #d9d9d9 !important;
+  color: #999 !important;
+}
+
+/* 告警样式 */
+.vue-system-monitor .alert-item {
+  padding: 12px 16px !important;
+  border-radius: 6px !important;
+  margin-bottom: 8px !important;
+  border-left: 4px solid transparent !important;
+}
+
+.vue-system-monitor .alert-warning {
+  background-color: #fffbe6 !important;
+  border-left-color: #faad14 !important;
+}
+
+.vue-system-monitor .alert-error {
+  background-color: #fff2f0 !important;
+  border-left-color: #ff4d4f !important;
+}
+
+.vue-system-monitor .alert-info {
+  background-color: #e6f7ff !important;
+  border-left-color: #1890ff !important;
+}
+
+.vue-system-monitor .alert-success {
+  background-color: #f6ffed !important;
+  border-left-color: #52c41a !important;
+}
+
+/* 图表容器样式 */
+.vue-system-monitor .chart-container {
+  height: 300px !important;
+  margin: 16px 0 !important;
+  padding: 16px !important;
+  background: #fafafa !important;
+  border-radius: 8px !important;
+}
+
+.vue-system-monitor .chart-title {
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  margin-bottom: 16px !important;
+  color: #333 !important;
+}
+
+/* 实时数据样式 */
+.vue-system-monitor .realtime-data {
+  animation: pulse 2s infinite !important;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+/* 进度条样式 */
+.vue-system-monitor .progress-container {
+  margin: 8px 0 !important;
+}
+
+.vue-system-monitor .progress-label {
+  display: flex !important;
+  justify-content: space-between !important;
+  margin-bottom: 4px !important;
+  font-size: 12px !important;
+  color: #666 !important;
+}
+
+/* 日志样式 */
+.vue-system-monitor .log-container {
+  background: #001529 !important;
+  color: #fff !important;
+  padding: 16px !important;
+  border-radius: 6px !important;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace !important;
+  font-size: 12px !important;
+  line-height: 1.4 !important;
+  max-height: 400px !important;
+  overflow-y: auto !important;
+}
+
+.vue-system-monitor .log-entry {
+  margin-bottom: 4px !important;
+}
+
+.vue-system-monitor .log-timestamp {
+  color: #666 !important;
+  margin-right: 8px !important;
+}
+
+.vue-system-monitor .log-level-info {
+  color: #1890ff !important;
+}
+
+.vue-system-monitor .log-level-warn {
+  color: #faad14 !important;
+}
+
+.vue-system-monitor .log-level-error {
+  color: #ff4d4f !important;
+}
+
+.vue-system-monitor .log-level-debug {
+  color: #52c41a !important;
+}
+
+/* 服务列表样式 */
+.vue-system-monitor .service-list {
+  background: #fff !important;
+}
+
+.vue-system-monitor .service-item {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  padding: 12px 16px !important;
+  border-bottom: 1px solid #f0f0f0 !important;
+}
+
+.vue-system-monitor .service-item:last-child {
+  border-bottom: none !important;
+}
+
+.vue-system-monitor .service-name {
+  font-weight: 600 !important;
+  color: #333 !important;
+}
+
+.vue-system-monitor .service-metrics {
+  display: flex !important;
+  gap: 16px !important;
+  font-size: 12px !important;
+  color: #666 !important;
+}
+
+/* 工具栏样式 */
+.vue-system-monitor .toolbar {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  margin-bottom: 16px !important;
+  padding: 12px 16px !important;
+  background: #fafafa !important;
+  border-radius: 6px !important;
+}
+
+.vue-system-monitor .toolbar .ant-btn {
+  margin-right: 8px !important;
+}
+
+/* 统计数字样式 */
+.vue-system-monitor .stat-number {
+  font-size: 24px !important;
+  font-weight: bold !important;
+  color: #1890ff !important;
+}
+
+.vue-system-monitor .stat-label {
+  font-size: 12px !important;
+  color: #666 !important;
+  margin-top: 4px !important;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .vue-system-monitor .monitor-app-main {
+    margin: 16px !important;
+    padding: 16px !important;
+  }
+  
+  .vue-system-monitor .chart-container {
+    height: 200px !important;
+  }
+  
+  .vue-system-monitor .service-item {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 8px !important;
+  }
+  
+  .vue-system-monitor .toolbar {
+    flex-direction: column !important;
+    gap: 12px !important;
+  }
+}
+
+/* 加载动画 */
+.vue-system-monitor .loading-spinner {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  height: 200px !important;
+}
+
+/* 路由切换动画 */
+.vue-system-monitor .route-enter-active,
+.vue-system-monitor .route-leave-active {
+  transition: opacity 0.3s ease !important;
+}
+
+.vue-system-monitor .route-enter-from,
+.vue-system-monitor .route-leave-to {
+  opacity: 0 !important;
+}

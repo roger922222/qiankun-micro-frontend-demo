@@ -64,6 +64,18 @@ const FilePreview: React.FC<FilePreviewProps> = ({ file, fileType, onError }) =>
   const [csvSortOrder, setCsvSortOrder] = useState<'asc' | 'desc'>('asc');
   const previewRef = useRef<HTMLDivElement>(null);
   const wordPreviewRef = useRef<HTMLDivElement>(null);
+  
+  // 添加CSS模块加载状态
+  const [stylesLoaded, setStylesLoaded] = useState(false);
+  
+  // 确保CSS模块加载完成
+  useEffect(() => {
+    // 延迟设置样式加载完成状态，避免微前端环境下的CSS加载问题
+    const timer = setTimeout(() => {
+      setStylesLoaded(true);
+    }, 100);
+    return () => clearTimeout(timer);
+  }, []);
 
   // 文件大小限制检查
   const checkFileSize = (file: File): boolean => {
@@ -620,6 +632,18 @@ const FilePreview: React.FC<FilePreviewProps> = ({ file, fileType, onError }) =>
     return (
       <div style={{ textAlign: 'center', padding: '40px' }}>
         <Text type="secondary">请选择要预览的文件</Text>
+      </div>
+    );
+  }
+
+  // 等待CSS模块加载完成
+  if (!stylesLoaded) {
+    return (
+      <div style={{ textAlign: 'center', padding: '40px' }}>
+        <Spin size="large" />
+        <div style={{ marginTop: '16px' }}>
+          <Text type="secondary">正在加载样式...</Text>
+        </div>
       </div>
     );
   }

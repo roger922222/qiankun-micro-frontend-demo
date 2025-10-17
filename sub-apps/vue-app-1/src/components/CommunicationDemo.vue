@@ -234,6 +234,12 @@ const messageCount = computed(() => {
   return store.state.messages?.messages?.length || 0;
 });
 
+// 定义 emit
+const emit = defineEmits<{
+  'component-ready': [componentName: string];
+  'component-error': [error: Error];
+}>();
+
 // 生命周期
 onMounted(() => {
   // 监听事件
@@ -260,6 +266,9 @@ onMounted(() => {
     timestamp: new Date().toISOString(),
     id: `vue-demo-ready-${Date.now()}`
   });
+
+  // 通知父组件组件已就绪
+  emit('component-ready', 'CommunicationDemo');
 
   // 清理函数
   const cleanup = () => {
@@ -320,24 +329,25 @@ const handleSendNotification = () => {
 };
 </script>
 
-<style scoped>
-.communication-demo {
+<style>
+/* 移除 scoped 避免与 qiankun 样式沙箱冲突 */
+.vue-message-center .communication-demo {
   padding: 16px;
 }
 
-.ant-card {
+.vue-message-center .ant-card {
   height: 100%;
 }
 
-.ant-statistic {
+.vue-message-center .ant-statistic {
   text-align: center;
 }
 
-.ant-timeline {
+.vue-message-center .ant-timeline {
   margin-top: 8px;
 }
 
-pre {
+.vue-message-center pre {
   white-space: pre-wrap;
   word-break: break-word;
 }

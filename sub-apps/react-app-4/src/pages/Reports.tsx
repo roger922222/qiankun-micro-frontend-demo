@@ -25,7 +25,7 @@ import {
   UploadOutlined,
   InboxOutlined
 } from '@ant-design/icons';
-import FilePreview from '../components/FilePreview';
+import StyleSafeFilePreview from '../components/StyleSafeFilePreview';
 
 const { Title, Text } = Typography;
 
@@ -557,7 +557,7 @@ startxref
         bodyStyle={{ padding: 0 }}
       >
         <div style={{ height: '70vh' }}>
-          <FilePreview
+          <StyleSafeFilePreview
             file={uploadedFile}
             fileType={currentFileType}
             onError={(error) => {

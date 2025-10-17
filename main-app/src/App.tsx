@@ -25,9 +25,6 @@ import { setupMicroApps } from './micro-apps/setup';
 
 // 导入导航系统
 import { 
-  globalRouteManager, 
-  globalNavigationService, 
-  globalHistoryService,
   initializeNavigation,
   type RouteChangeEvent,
   type NavigationEvent
@@ -56,7 +53,7 @@ const App: React.FC = () => {
         // 1. 初始化导航系统
         globalLogger.info('Initializing navigation system...');
         initializeNavigation({
-          debug: process.env.NODE_ENV === 'development',
+          debug: true,
           maxHistorySize: 100,
           navigationTimeout: 5000,
           autoSnapshot: true,
@@ -140,11 +137,6 @@ const App: React.FC = () => {
 
   const activeMicroApp = getActiveMicroApp(location.pathname);
 
-  // 判断是否为微应用路由
-  const isMicroAppRoute = (pathname: string) => {
-    return microApps.some(app => pathname.startsWith(app.activeRule as string));
-  };
-
   // 渲染页面内容
   const renderContent = () => {
     if (microAppsLoading || !qiankunInitialized) {
@@ -211,7 +203,7 @@ const App: React.FC = () => {
           }}
         />
 
-        <Layout>
+        <Layout className="app-body-layout">
           {/* 侧边栏 */}
           <AppSidebar
             collapsed={collapsed}

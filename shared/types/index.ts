@@ -607,3 +607,4 @@ export type AsyncEventHandler<T = any> = (data: T) => Promise<void>;
 export * from './events';
 export * from './store';
 export * from './api';
+export * from './auth';

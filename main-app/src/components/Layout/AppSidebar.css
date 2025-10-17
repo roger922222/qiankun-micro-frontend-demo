@@ -3,18 +3,18 @@
  */
 
 .app-sidebar {
-  background: var(--color-background-primary);
+  background: #001529 !important;
   border-right: 1px solid var(--color-border-secondary);
   box-shadow: var(--shadow-sm);
   position: relative;
-  z-index: var(--z-sticky);
+  z-index: 9998 !important;
 }
 
 .sidebar-logo {
   display: flex;
   align-items: center;
   padding: 16px;
-  border-bottom: 1px solid var(--color-border-secondary);
+  border-bottom: 1px solid #303030 !important;
   height: 64px;
   gap: 12px;
 }
@@ -40,14 +40,14 @@
 .logo-title {
   font-size: var(--font-size-md);
   font-weight: 600;
-  color: var(--color-text-primary);
+  color: #fff !important;
   line-height: 1.2;
   margin: 0;
 }
 
 .logo-subtitle {
   font-size: var(--font-size-xs);
-  color: var(--color-text-secondary);
+  color: #ccc !important;
   line-height: 1.2;
   margin: 0;
 }
@@ -77,16 +77,43 @@
 }
 
 .sidebar-menu .ant-menu-item-selected {
-  background-color: var(--color-primary-light);
-  color: var(--color-primary);
+  background-color: #1890ff !important;
+  color: #fff !important;
 }
 
 .sidebar-menu .ant-menu-item:hover {
-  background-color: var(--color-fill-primary);
+  background-color: #1890ff !important;
+  color: #fff !important;
 }
 
 .sidebar-menu .ant-menu-submenu-title:hover {
-  background-color: var(--color-fill-primary);
+  background-color: #1890ff !important;
+  color: #fff !important;
+}
+
+/* 确保菜单项文字颜色在暗色主题下正确显示 */
+.sidebar-menu .ant-menu-item {
+  color: #fff !important;
+}
+
+.sidebar-menu .ant-menu-submenu-title {
+  color: #fff !important;
+}
+
+.sidebar-menu .ant-menu-item-icon {
+  color: #fff !important;
+}
+
+.sidebar-menu .ant-menu-submenu-arrow {
+  color: #fff !important;
+}
+
+.sidebar-menu .ant-menu-item .anticon {
+  color: #fff !important;
+}
+
+.sidebar-menu .ant-menu-submenu .anticon {
+  color: #fff !important;
 }
 
 /* 应用状态指示器 */
@@ -96,13 +123,13 @@
   left: 0;
   right: 0;
   padding: 16px;
-  border-top: 1px solid var(--color-border-secondary);
-  background: var(--color-background-secondary);
+  border-top: 1px solid #303030 !important;
+  background: #002140 !important;
 }
 
 .status-title {
   font-size: var(--font-size-xs);
-  color: var(--color-text-tertiary);
+  color: rgba(255, 255, 255, 0.65) !important;
   margin-bottom: 8px;
   font-weight: 500;
 }
@@ -118,7 +145,7 @@
   align-items: center;
   gap: 8px;
   font-size: var(--font-size-xs);
-  color: var(--color-text-secondary);
+  color: rgba(255, 255, 255, 0.85) !important;
 }
 
 .status-dot {

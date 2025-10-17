@@ -419,10 +419,10 @@ function startQiankun() {
     // 预加载策略
     prefetch: 'all',
     
-    // 沙箱配置
+    // 沙箱配置 - 关闭样式隔离以解决样式不生效问题
     sandbox: {
       strictStyleIsolation: false,
-      experimentalStyleIsolation: true
+      experimentalStyleIsolation: false
     },
     
     // 单例模式

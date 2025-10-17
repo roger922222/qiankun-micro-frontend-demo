@@ -9,17 +9,27 @@
 /* 主应用特定样式 */
 .app-layout {
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-body-layout {
+  flex: 1;
+  display: flex;
 }
 
 .app-content-layout {
   background: var(--color-background-secondary);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .app-content {
   margin: 0;
-  padding: 0;
+  padding: 24px;
   background: var(--color-background-secondary);
-  min-height: calc(100vh - 64px - 70px);
+  flex: 1;
   overflow: auto;
 }
 
@@ -51,10 +61,15 @@
   padding: 0;
   height: 64px;
   line-height: 64px;
+  z-index: 9999 !important;
+  position: relative !important;
 }
 
 .ant-layout-sider {
   background: var(--color-background-primary);
+  z-index: 9998 !important;
+  position: relative !important;
+  flex: 0 0 auto !important;
 }
 
 .ant-layout-footer {
@@ -63,6 +78,8 @@
 
 .ant-menu {
   background: transparent;
+  z-index: 9997 !important;
+  position: relative !important;
 }
 
 .ant-menu-item-selected {
@@ -76,8 +93,12 @@
 
 /* 响应式布局 */
 @media (max-width: 768px) {
+  .app-body-layout {
+    flex-direction: column;
+  }
+  
   .app-content {
-    min-height: calc(100vh - 64px - 60px);
+    padding: 16px;
   }
   
   .loading-container {
@@ -86,6 +107,10 @@
 }
 
 /* 暗色主题适配 */
+[data-theme="dark"] .app-body-layout {
+  background: var(--color-background-secondary);
+}
+
 [data-theme="dark"] .app-content-layout {
   background: var(--color-background-secondary);
 }
@@ -126,9 +151,13 @@
     display: none !important;
   }
   
+  .app-body-layout {
+    flex-direction: column !important;
+  }
+  
   .app-content {
     margin: 0 !important;
     padding: 0 !important;
-    min-height: auto !important;
+    flex: none !important;
   }
 }

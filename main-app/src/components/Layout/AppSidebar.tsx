@@ -163,7 +163,7 @@ const AppSidebar: React.FC<AppSidebarProps> = ({
       </div>
 
       <Menu
-        theme="light"
+        theme="dark"
         mode="inline"
         selectedKeys={selectedKeys}
         defaultOpenKeys={getDefaultOpenKeys()}

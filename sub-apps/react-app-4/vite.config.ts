@@ -26,6 +26,11 @@ export default defineConfig({
     headers: {
       'Access-Control-Allow-Origin': '*',
     },
+    // 禁用 CSS 热更新以避免 contains 错误
+    watch: {
+      usePolling: true,
+      interval: 1000,
+    },
     proxy: {
       '/api': {
         target: 'http://localhost:3003',
@@ -50,6 +55,17 @@ export default defineConfig({
       '@': resolve(__dirname, 'src'),
       '@shared': resolve(__dirname, '../../shared'),
     },
+  },
+
+  // CSS 模块配置
+  css: {
+    modules: {
+      localsConvention: 'camelCaseOnly',
+      scopeBehaviour: 'local',
+      generateScopedName: '[name]__[local]___[hash:base64:5]',
+    },
+    // 禁用 CSS 热更新以避免微前端环境下的错误
+    devSourcemap: false,
   },
 
   optimizeDeps: {

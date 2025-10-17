@@ -1,5 +1,5 @@
 <template>
-  <div id="app" class="monitor-app">
+  <div id="vue-system-monitor" class="vue-system-monitor">
     <a-config-provider :locale="locale">
       <a-layout class="monitor-app-layout">
         <AppHeader />

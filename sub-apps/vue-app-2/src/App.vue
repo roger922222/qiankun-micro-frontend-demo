@@ -1,5 +1,5 @@
 <template>
-  <div id="app" class="file-app">
+  <div id="vue-file-management" class="vue-file-management">
     <a-config-provider :locale="locale">
       <a-layout class="file-app-layout">
         <AppHeader />
@@ -10,7 +10,9 @@
           <a-layout class="file-app-content">
             <a-layout-content class="file-app-main">
               <div class="file-app-container">
-                <router-view />
+                <ErrorBoundary>
+                  <router-view />
+                </ErrorBoundary>
               </div>
             </a-layout-content>
             
@@ -31,6 +33,7 @@ import zhCN from 'ant-design-vue/es/locale/zh_CN';
 import AppHeader from './components/Layout/AppHeader.vue';
 import AppSidebar from './components/Layout/AppSidebar.vue';
 import AppFooter from './components/Layout/AppFooter.vue';
+import ErrorBoundary from './components/ErrorBoundary.vue';
 
 // 导入共享库
 import { globalEventBus } from '@shared/communication/event-bus';

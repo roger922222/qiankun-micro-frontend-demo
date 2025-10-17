@@ -1,0 +1,238 @@
+/**
+ * 文件管理应用全局样式
+ * 针对 qiankun 微前端环境优化
+ */
+
+/* 重置样式 */
+.vue-file-management * {
+  box-sizing: border-box;
+}
+
+.vue-file-management {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif !important;
+  width: 100% !important;
+  height: 100% !important;
+  position: relative !important;
+}
+
+/* 布局样式 */
+.vue-file-management .file-app-layout {
+  min-height: 100vh !important;
+}
+
+.vue-file-management .file-app-content {
+  background: #f0f2f5 !important;
+}
+
+.vue-file-management .file-app-main {
+  margin: 24px !important;
+  padding: 24px !important;
+  background: #fff !important;
+  border-radius: 8px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+}
+
+.vue-file-management .file-app-container {
+  max-width: 1200px !important;
+  margin: 0 auto !important;
+}
+
+/* 文件相关样式 */
+.vue-file-management .file-item {
+  transition: all 0.3s ease !important;
+  cursor: pointer !important;
+  padding: 12px !important;
+  border-radius: 6px !important;
+  margin-bottom: 8px !important;
+}
+
+.vue-file-management .file-item:hover {
+  background-color: #f5f5f5 !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+}
+
+.vue-file-management .file-selected {
+  background-color: #e6f7ff !important;
+  border: 1px solid #91d5ff !important;
+}
+
+.vue-file-management .folder-icon {
+  color: #faad14 !important;
+  font-size: 20px !important;
+}
+
+.vue-file-management .file-icon {
+  color: #1890ff !important;
+  font-size: 18px !important;
+}
+
+/* 拖拽样式 */
+.vue-file-management .drag-over {
+  border: 2px dashed #1890ff !important;
+  background-color: #f0f9ff !important;
+}
+
+.vue-file-management .drop-zone {
+  border: 2px dashed #d9d9d9 !important;
+  border-radius: 8px !important;
+  padding: 40px !important;
+  text-align: center !important;
+  background-color: #fafafa !important;
+  transition: all 0.3s ease !important;
+}
+
+.vue-file-management .drop-zone:hover {
+  border-color: #1890ff !important;
+  background-color: #f0f9ff !important;
+}
+
+/* 文件列表样式 */
+.vue-file-management .file-list {
+  min-height: 400px !important;
+}
+
+.vue-file-management .file-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)) !important;
+  gap: 16px !important;
+  padding: 16px !important;
+}
+
+.vue-file-management .file-card {
+  border: 1px solid #f0f0f0 !important;
+  border-radius: 8px !important;
+  padding: 16px !important;
+  text-align: center !important;
+  transition: all 0.3s ease !important;
+}
+
+.vue-file-management .file-card:hover {
+  border-color: #1890ff !important;
+  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.15) !important;
+}
+
+/* 文件预览样式 */
+.vue-file-management .file-preview {
+  max-width: 100% !important;
+  max-height: 400px !important;
+  border-radius: 4px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+}
+
+.vue-file-management .preview-modal .ant-modal-body {
+  padding: 0 !important;
+}
+
+/* 工具栏样式 */
+.vue-file-management .toolbar {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  margin-bottom: 16px !important;
+  padding: 12px 16px !important;
+  background: #fafafa !important;
+  border-radius: 6px !important;
+}
+
+.vue-file-management .toolbar .ant-btn {
+  margin-right: 8px !important;
+}
+
+/* 面包屑导航样式 */
+.vue-file-management .breadcrumb {
+  margin-bottom: 16px !important;
+  padding: 8px 0 !important;
+}
+
+.vue-file-management .breadcrumb .ant-breadcrumb-link {
+  color: #1890ff !important;
+}
+
+/* 上传进度样式 */
+.vue-file-management .upload-progress {
+  margin-top: 16px !important;
+}
+
+.vue-file-management .upload-list {
+  max-height: 200px !important;
+  overflow-y: auto !important;
+}
+
+/* 搜索框样式 */
+.vue-file-management .search-box {
+  margin-bottom: 16px !important;
+}
+
+.vue-file-management .search-box .ant-input-search {
+  max-width: 300px !important;
+}
+
+/* 状态样式 */
+.vue-file-management .status-uploading {
+  color: #1890ff !important;
+}
+
+.vue-file-management .status-success {
+  color: #52c41a !important;
+}
+
+.vue-file-management .status-error {
+  color: #ff4d4f !important;
+}
+
+/* 空状态样式 */
+.vue-file-management .empty-state {
+  text-align: center !important;
+  padding: 40px !important;
+  color: #999 !important;
+}
+
+.vue-file-management .empty-state .anticon {
+  font-size: 48px !important;
+  color: #d9d9d9 !important;
+  margin-bottom: 16px !important;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .vue-file-management .file-app-main {
+    margin: 16px !important;
+    padding: 16px !important;
+  }
+  
+  .vue-file-management .file-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)) !important;
+    gap: 12px !important;
+  }
+  
+  .vue-file-management .toolbar {
+    flex-direction: column !important;
+    gap: 12px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .vue-file-management .file-grid {
+    grid-template-columns: 1fr 1fr !important;
+  }
+}
+
+/* 加载动画 */
+.vue-file-management .loading-spinner {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  height: 200px !important;
+}
+
+/* 路由切换动画 */
+.vue-file-management .route-enter-active,
+.vue-file-management .route-leave-active {
+  transition: opacity 0.3s ease !important;
+}
+
+.vue-file-management .route-enter-from,
+.vue-file-management .route-leave-to {
+  opacity: 0 !important;
+}
