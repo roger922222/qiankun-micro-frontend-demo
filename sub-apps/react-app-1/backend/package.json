@@ -9,7 +9,9 @@
     "start": "node dist/app.js",
     "lint": "eslint src --ext ts --report-unused-disable-directives --max-warnings 0",
     "lint:fix": "eslint src --ext ts --fix",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "test:performance": "tsx src/test/performance-test.ts",
+    "test:db-performance": "npm run test:performance"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

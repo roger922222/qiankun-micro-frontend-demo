@@ -7,6 +7,7 @@ import { ValidationError } from '../middleware/error';
 import bcrypt from 'bcryptjs';
 import { v4 as uuidv4 } from 'uuid';
 import { cacheManager } from '../utils/cache';
+import { queryOptimizer } from '../utils/query-optimizer';
 
 // 临时回退到内存存储，直到数据库连接正常
 const mockUsers: User[] = [
@@ -60,7 +61,7 @@ export class UserService {
   private cacheManager = cacheManager;
 
   constructor() {
-    this.userRepository = new UserRepositoryDB();
+    this.userRepository = new UserRepositoryDB(cacheManager);
     this.roleRepository = new RoleRepository();
     
     // 初始化缓存管理器
@@ -200,45 +201,35 @@ export class UserService {
   }
 
   async getUserById(id: string): Promise<any | null> {
-    // 生成缓存键
+    // 使用查询优化器获取用户详情
     const cacheKey = `users:${id}`;
     
-    try {
-      // 尝试从缓存获取
-      const cachedUser = await this.cacheManager.get<any>(cacheKey);
-      if (cachedUser) {
-        console.log(`🎯 用户详情缓存命中: ${cacheKey}`);
-        return cachedUser;
-      }
-    } catch (error) {
-      console.error('获取用户详情缓存失败:', error);
-    }
-
-    let user: any | null;
-    
     if (!this.useDatabase) {
-      user = mockUsers.find(u => u.id === id) || null;
-    } else {
-      try {
-        const userEntity = await this.userRepository.findById(id);
-        user = userEntity ? this.entityToDTO(userEntity) : null;
-      } catch (error: any) {
-        console.log('数据库查询失败，回退到内存存储:', error.message);
-        user = mockUsers.find(u => u.id === id) || null;
-      }
+      return mockUsers.find(u => u.id === id) || null;
     }
 
-    // 缓存结果
-    if (user) {
-      try {
-        await this.cacheManager.set(cacheKey, user, 600); // 缓存10分钟
-        console.log(`💾 用户详情缓存设置: ${cacheKey}`);
-      } catch (error) {
-        console.error('设置用户详情缓存失败:', error);
-      }
-    }
+    try {
+      const { result, duration, cacheHit } = await queryOptimizer.monitorQueryPerformance(
+        cacheKey,
+        () => this.userRepository.findById(id)
+      );
 
-    return user;
+      if (result) {
+        const user = this.entityToDTO(result);
+        
+        // 如果缓存未命中，手动设置缓存
+        if (!cacheHit) {
+          await this.cacheManager.set(cacheKey, user, 600); // 缓存10分钟
+        }
+        
+        return user;
+      }
+      
+      return null;
+    } catch (error: any) {
+      console.log('数据库查询失败，回退到内存存储:', error.message);
+      return mockUsers.find(u => u.id === id) || null;
+    }
   }
 
   async createUser(userData: CreateUserRequest): Promise<any> {
@@ -552,15 +543,24 @@ export class UserService {
   // 清理用户相关缓存
   private async clearUserCache(userId?: string): Promise<void> {
     try {
+      const patterns: string[] = [];
+      
       if (userId) {
         // 清理特定用户缓存
-        await this.cacheManager.del(`users:${userId}`);
-        console.log(`🧹 清理用户缓存: users:${userId}`);
+        patterns.push(`users:${userId}`);
       }
       
       // 清理用户列表缓存
-      await this.cacheManager.delPattern('users:list:*');
-      console.log('🧹 清理用户列表缓存');
+      patterns.push('users:list:*');
+      
+      // 清理统计缓存
+      patterns.push('users:countByStatus');
+      patterns.push('users:countByRole');
+      
+      // 使用查询优化器进行智能缓存失效
+      await queryOptimizer.invalidateCache(patterns);
+      
+      console.log(`🧹 清理用户相关缓存: ${patterns.join(', ')}`);
     } catch (error) {
       console.error('清理用户缓存失败:', error);
     }

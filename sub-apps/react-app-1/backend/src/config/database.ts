@@ -19,8 +19,26 @@ export const AppDataSource = new DataSource({
   migrations: ['src/migrations/*.ts'],
   subscribers: ['src/subscribers/*.ts'],
   ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
-  poolSize: parseInt(process.env.DB_POOL_SIZE || '10'),
+  
+  // 优化：动态连接池配置
+  poolSize: parseInt(process.env.DB_POOL_SIZE || '20'), // 增加连接池大小
   maxQueryExecutionTime: 1000, // 慢查询阈值（毫秒）
+  
+  // 优化：添加连接池健康检查
+  connectTimeoutMS: 10000, // 连接超时
+  idleTimeoutMillis: 30000, // 空闲连接超时
+  maxLifetimeMillis: 60000, // 连接最大生命周期
+  
+  // 优化：查询优化配置
+  cache: true, // 启用查询缓存
+  extra: {
+    // 连接池优化参数
+    acquireTimeoutMillis: 60000,
+    createTimeoutMillis: 30000,
+    destroyTimeoutMillis: 5000,
+    reapIntervalMillis: 1000,
+    createRetryIntervalMillis: 200,
+  }
 });
 
 export const initializeDatabase = async () => {
