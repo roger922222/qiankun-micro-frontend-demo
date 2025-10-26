@@ -20,6 +20,11 @@
   min-height: 100vh !important;
 }
 
+/* 侧边栏样式 - 将背景色改为白色 */
+.vue-system-monitor .ant-layout-sider {
+  background: #fff !important;
+}
+
 .vue-system-monitor .monitor-app-content {
   background: #f0f2f5 !important;
 }

@@ -44,6 +44,11 @@ export const useFileStore = defineStore('fileStore', () => {
     return [...currentFolders.value, ...currentFiles.value];
   });
 
+  // 所有文件（包含文件和文件夹）- 用于文件画廊
+  const allFiles = computed(() => {
+    return [...folders.value, ...files.value];
+  });
+
   const selectedCount = computed(() => selectedItems.value.size);
 
   const totalSize = computed(() => {
@@ -207,6 +212,7 @@ export const useFileStore = defineStore('fileStore', () => {
     currentFiles,
     currentFolders,
     allCurrentItems,
+    allFiles, // 添加 allFiles 导出
     selectedCount,
     totalSize,
     

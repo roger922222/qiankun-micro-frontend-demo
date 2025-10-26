@@ -2,11 +2,13 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
+import 'reflect-metadata';
 import { errorHandler } from './middleware/error';
 import { userRoutes } from './routes/users';
 import { roleRoutes } from './routes/roles';
 import { permissionRoutes } from './routes/permissions';
 import { logRoutes } from './routes/logs';
+import { initializeDatabase } from './config/database';
 // import { authMiddleware } from './middleware/auth';
 
 const app = express();
@@ -49,10 +51,22 @@ app.use('*', (_req, res) => {
 });
 
 if (require.main === module) {
-  app.listen(PORT, () => {
-    console.log(`🚀 BFF服务器运行在端口 ${PORT}`);
-    console.log(`📊 API文档: http://localhost:${PORT}/api-docs`);
-  });
+  // 初始化数据库连接（可选）
+  initializeDatabase()
+    .then(() => {
+      app.listen(PORT, () => {
+        console.log(`🚀 BFF服务器运行在端口 ${PORT}`);
+        console.log(`📊 API文档: http://localhost:${PORT}/api-docs`);
+      });
+    })
+    .catch((error) => {
+      console.log('⚠️  数据库连接失败，使用内存存储模式');
+      console.log(`🚀 BFF服务器运行在端口 ${PORT}`);
+      console.log(`📊 API文档: http://localhost:${PORT}/api-docs`);
+      app.listen(PORT, () => {
+        console.log(`✅ 服务器启动成功（内存模式）`);
+      });
+    });
 }
 
 export default app;

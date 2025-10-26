@@ -1,0 +1,13 @@
+⚠️  使用内存存储
+❌ 数据库连接失败: Error: connect ECONNREFUSED ::1:5432
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1555:16) {
+  errno: -61,
+  code: 'ECONNREFUSED',
+  syscall: 'connect',
+  address: '::1',
+  port: 5432
+}
+⚠️  数据库连接失败，使用内存存储模式
+🚀 BFF服务器运行在端口 3002
+📊 API文档: http://localhost:3002/api-docs
+✅ 服务器启动成功（内存模式）

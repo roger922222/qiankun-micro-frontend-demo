@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>认证中心桥接页面</title>
+</head>
+<body>
+    <script>
+        // 跨域Token管理器
+        class CrossDomainAuthBridge {
+            constructor() {
+                this.token = localStorage.getItem('auth_token') || null;
+                this.refreshToken = localStorage.getItem('refresh_token') || null;
+                this.subscribers = new Set();
+                this.initBroadcastChannel();
+                this.initMessageListener();
+            }
+
+            // 初始化BroadcastChannel（同源页面间通信）
+            initBroadcastChannel() {
+                try {
+                    this.broadcastChannel = new BroadcastChannel('cross_domain_auth');
+                    this.broadcastChannel.addEventListener('message', (event) => {
+                        this.handleBroadcastMessage(event.data);
+                    });
+                } catch (error) {
+                    console.warn('BroadcastChannel 不可用:', error);
+                }
+            }
+
+            // 初始化PostMessage监听（跨域通信）
+            initMessageListener() {
+                window.addEventListener('message', (event) => {
+                    // 验证来源域名
+                    if (!this.isTrustedOrigin(event.origin)) {
+                        console.warn('不可信的来源:', event.origin);
+                        return;
+                    }
+
+                    this.handleCrossDomainMessage(event);
+                });
+            }
+
+            // 验证可信域名
+            isTrustedOrigin(origin) {
+                const trustedDomains = [
+                    'https://app1.example.com',
+                    'https://app2.example.com',
+                    'https://app3.example.com',
+                    'http://localhost:3001',
+                    'http://localhost:3002',
+                    'http://localhost:3003'
+                ];
+                return trustedDomains.includes(origin);
+            }
+
+            // 处理BroadcastChannel消息
+            handleBroadcastMessage(data) {
+                switch (data.type) {
+                    case 'auth:login':
+                        this.updateToken(data.token, data.refreshToken);
+                        break;
+                    case 'auth:logout':
+                        this.clearToken();
+                        break;
+                    case 'auth:token-request':
+                        this.sendTokenToBroadcast(data.requester);
+                        break;
+                }
+            }
+
+            // 处理跨域消息
+            handleCrossDomainMessage(event) {
+                const { data, origin, source } = event;
+                
+                switch (data.type) {
+                    case 'auth:set-token':
+                        this.updateToken(data.token, data.refreshToken);
+                        source.postMessage({
+                            type: 'auth:token-updated',
+                            success: true
+                        }, origin);
+                        break;
+
+                    case 'auth:get-token':
+                        source.postMessage({
+                            type: 'auth:token-response',
+                            token: this.token,
+                            refreshToken: this.refreshToken
+                        }, origin);
+                        break;
+
+                    case 'auth:clear-token':
+                        this.clearToken();
+                        source.postMessage({
+                            type: 'auth:token-cleared',
+                            success: true
+                        }, origin);
+                        break;
+
+                    case 'auth:subscribe':
+                        this.addSubscriber(source, origin);
+                        // 立即发送当前token状态
+                        source.postMessage({
+                            type: 'auth:token-response',
+                            token: this.token,
+                            refreshToken: this.refreshToken
+                        }, origin);
+                        break;
+                }
+            }
+
+            // 更新Token
+            updateToken(token, refreshToken) {
+                this.token = token;
+                this.refreshToken = refreshToken;
+                
+                if (token) {
+                    localStorage.setItem('auth_token', token);
+                    localStorage.setItem('auth_timestamp', Date.now().toString());
+                }
+                
+                if (refreshToken) {
+                    localStorage.setItem('refresh_token', refreshToken);
+                }
+
+                // 广播给所有同源页面
+                if (this.broadcastChannel) {
+                    this.broadcastChannel.postMessage({
+                        type: 'auth:token-updated',
+                        token: this.token,
+                        refreshToken: this.refreshToken
+                    });
+                }
+
+                // 通知所有订阅的跨域窗口
+                this.notifySubscribers();
+            }
+
+            // 清除Token
+            clearToken() {
+                this.token = null;
+                this.refreshToken = null;
+                localStorage.removeItem('auth_token');
+                localStorage.removeItem('refresh_token');
+                localStorage.removeItem('auth_timestamp');
+
+                // 广播清除事件
+                if (this.broadcastChannel) {
+                    this.broadcastChannel.postMessage({
+                        type: 'auth:token-cleared'
+                    });
+                }
+
+                this.notifySubscribers();
+            }
+
+            // 添加订阅者
+            addSubscriber(source, origin) {
+                this.subscribers.add({ source, origin });
+            }
+
+            // 通知所有订阅者
+            notifySubscribers() {
+                this.subscribers.forEach(({ source, origin }) => {
+                    try {
+                        source.postMessage({
+                            type: 'auth:token-changed',
+                            token: this.token,
+                            refreshToken: this.refreshToken
+                        }, origin);
+                    } catch (error) {
+                        console.error('通知订阅者失败:', error);
+                        // 移除无效的订阅者
+                        this.subscribers.delete({ source, origin });
+                    }
+                });
+            }
+
+            // 发送Token给请求者
+            sendTokenToBroadcast(requester) {
+                if (this.broadcastChannel) {
+                    this.broadcastChannel.postMessage({
+                        type: 'auth:token-response',
+                        token: this.token,
+                        refreshToken: this.refreshToken,
+                        requester: requester
+                    });
+                }
+            }
+
+            // 获取当前Token（供调试使用）
+            getCurrentToken() {
+                return {
+                    token: this.token,
+                    refreshToken: this.refreshToken,
+                    timestamp: localStorage.getItem('auth_timestamp')
+                };
+            }
+        }
+
+        // 初始化桥接器
+        window.crossDomainAuthBridge = new CrossDomainAuthBridge();
+        
+        // 暴露调试接口
+        window.getAuthToken = () => window.crossDomainAuthBridge.getCurrentToken();
+        
+        console.log('跨域认证桥接页面已初始化');
+    </script>
+</body>
+</html>

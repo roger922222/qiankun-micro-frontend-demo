@@ -1,6 +1,10 @@
 
-> react-user-management-backend@1.0.0 dev
-> ts-node src/app.ts
+> react-user-management@1.0.0 dev
+> vite --port 3001
 
-🚀 BFF服务器运行在端口 3002
-📊 API文档: http://localhost:3002/api-docs
+Port 3001 is in use, trying another one...
+
+  VITE v4.5.14  ready in 326 ms
+
+  ➜  Local:   http://localhost:3002/
+  ➜  Network: http://100.84.216.93:3002/
