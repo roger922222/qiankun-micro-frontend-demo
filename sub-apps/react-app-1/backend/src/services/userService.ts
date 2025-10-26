@@ -6,6 +6,7 @@ import { Role } from '../entities/Role';
 import { ValidationError } from '../middleware/error';
 import bcrypt from 'bcryptjs';
 import { v4 as uuidv4 } from 'uuid';
+import { cacheManager } from '../utils/cache';
 
 // 临时回退到内存存储，直到数据库连接正常
 const mockUsers: User[] = [
@@ -56,10 +57,14 @@ export class UserService {
   private userRepository: UserRepositoryDB;
   private roleRepository: RoleRepository;
   private useDatabase: boolean = false;
+  private cacheManager = cacheManager;
 
   constructor() {
     this.userRepository = new UserRepositoryDB();
     this.roleRepository = new RoleRepository();
+    
+    // 初始化缓存管理器
+    this.initializeCache();
     
     // 检查数据库连接
     this.checkDatabaseConnection().then(connected => {
@@ -69,6 +74,15 @@ export class UserService {
       this.useDatabase = false;
       console.log('⚠️  使用内存存储');
     });
+  }
+
+  private async initializeCache(): Promise<void> {
+    try {
+      await this.cacheManager.initialize();
+      console.log('✅ 缓存管理器初始化成功');
+    } catch (error) {
+      console.log('⚠️ 缓存管理器初始化失败:', error);
+    }
   }
 
   private async checkDatabaseConnection(): Promise<boolean> {
@@ -82,25 +96,51 @@ export class UserService {
   }
 
   async getUsers(params: GetUsersParams): Promise<PaginatedResponse<any>> {
-    if (!this.useDatabase) {
-      return this.getUsersFromMemory(params);
+    // 生成缓存键
+    const cacheKey = `users:list:${JSON.stringify(params)}`;
+    
+    try {
+      // 尝试从缓存获取
+      const cachedResult = await this.cacheManager.get<PaginatedResponse<any>>(cacheKey);
+      if (cachedResult) {
+        console.log(`🎯 用户列表缓存命中: ${cacheKey}`);
+        return cachedResult;
+      }
+    } catch (error) {
+      console.error('获取用户列表缓存失败:', error);
     }
 
-    try {
-      const [users, total] = await this.userRepository.findAll(params);
-      return {
-        data: users.map(user => this.entityToDTO(user)),
-        pagination: {
-          page: params.page || 1,
-          pageSize: params.pageSize || 20,
-          total,
-          totalPages: Math.ceil(total / (params.pageSize || 20)),
-        },
-      };
-    } catch (error: any) {
-      console.log('数据库查询失败，回退到内存存储:', error.message);
-      return this.getUsersFromMemory(params);
+    let result: PaginatedResponse<any>;
+    
+    if (!this.useDatabase) {
+      result = await this.getUsersFromMemory(params);
+    } else {
+      try {
+        const [users, total] = await this.userRepository.findAll(params);
+        result = {
+          data: users.map(user => this.entityToDTO(user)),
+          pagination: {
+            page: params.page || 1,
+            pageSize: params.pageSize || 20,
+            total,
+            totalPages: Math.ceil(total / (params.pageSize || 20)),
+          },
+        };
+      } catch (error: any) {
+        console.log('数据库查询失败，回退到内存存储:', error.message);
+        result = await this.getUsersFromMemory(params);
+      }
     }
+
+    // 缓存结果
+    try {
+      await this.cacheManager.set(cacheKey, result, 300); // 缓存5分钟
+      console.log(`💾 用户列表缓存设置: ${cacheKey}`);
+    } catch (error) {
+      console.error('设置用户列表缓存失败:', error);
+    }
+
+    return result;
   }
 
   private getUsersFromMemory(params: GetUsersParams): PaginatedResponse<any> {
@@ -160,22 +200,53 @@ export class UserService {
   }
 
   async getUserById(id: string): Promise<any | null> {
-    if (!this.useDatabase) {
-      return mockUsers.find(user => user.id === id) || null;
+    // 生成缓存键
+    const cacheKey = `users:${id}`;
+    
+    try {
+      // 尝试从缓存获取
+      const cachedUser = await this.cacheManager.get<any>(cacheKey);
+      if (cachedUser) {
+        console.log(`🎯 用户详情缓存命中: ${cacheKey}`);
+        return cachedUser;
+      }
+    } catch (error) {
+      console.error('获取用户详情缓存失败:', error);
     }
 
-    try {
-      const user = await this.userRepository.findById(id);
-      return user ? this.entityToDTO(user) : null;
-    } catch (error: any) {
-      console.log('数据库查询失败，回退到内存存储:', error.message);
-      return mockUsers.find(user => user.id === id) || null;
+    let user: any | null;
+    
+    if (!this.useDatabase) {
+      user = mockUsers.find(u => u.id === id) || null;
+    } else {
+      try {
+        const userEntity = await this.userRepository.findById(id);
+        user = userEntity ? this.entityToDTO(userEntity) : null;
+      } catch (error: any) {
+        console.log('数据库查询失败，回退到内存存储:', error.message);
+        user = mockUsers.find(u => u.id === id) || null;
+      }
     }
+
+    // 缓存结果
+    if (user) {
+      try {
+        await this.cacheManager.set(cacheKey, user, 600); // 缓存10分钟
+        console.log(`💾 用户详情缓存设置: ${cacheKey}`);
+      } catch (error) {
+        console.error('设置用户详情缓存失败:', error);
+      }
+    }
+
+    return user;
   }
 
   async createUser(userData: CreateUserRequest): Promise<any> {
     if (!this.useDatabase) {
-      return this.createUserInMemory(userData);
+      const result = this.createUserInMemory(userData);
+      // 清理相关缓存
+      await this.clearUserCache();
+      return result;
     }
 
     try {
@@ -221,10 +292,18 @@ export class UserService {
         profile: userData.profile || {},
       });
       
-      return this.entityToDTO(newUser);
+      const result = this.entityToDTO(newUser);
+      
+      // 清理相关缓存
+      await this.clearUserCache();
+      
+      return result;
     } catch (error: any) {
       console.log('数据库创建失败，回退到内存存储:', error.message);
-      return this.createUserInMemory(userData);
+      const result = this.createUserInMemory(userData);
+      // 清理相关缓存
+      await this.clearUserCache();
+      return result;
     }
   }
 
@@ -259,7 +338,12 @@ export class UserService {
 
   async updateUser(id: string, userData: UpdateUserRequest): Promise<any | null> {
     if (!this.useDatabase) {
-      return this.updateUserInMemory(id, userData);
+      const result = this.updateUserInMemory(id, userData);
+      if (result) {
+        // 清理相关缓存
+        await this.clearUserCache(id);
+      }
+      return result;
     }
 
     try {
@@ -297,10 +381,22 @@ export class UserService {
       
       const updatedUser = await this.userRepository.update(id, updateData);
       
-      return updatedUser ? this.entityToDTO(updatedUser) : null;
+      if (updatedUser) {
+        const result = this.entityToDTO(updatedUser);
+        // 清理相关缓存
+        await this.clearUserCache(id);
+        return result;
+      }
+      
+      return null;
     } catch (error: any) {
       console.log('数据库更新失败，回退到内存存储:', error.message);
-      return this.updateUserInMemory(id, userData);
+      const result = this.updateUserInMemory(id, userData);
+      if (result) {
+        // 清理相关缓存
+        await this.clearUserCache(id);
+      }
+      return result;
     }
   }
 
@@ -332,22 +428,31 @@ export class UserService {
   }
 
   async deleteUser(id: string): Promise<boolean> {
+    let result: boolean;
+    
     if (!this.useDatabase) {
-      return this.deleteUserFromMemory(id);
+      result = this.deleteUserFromMemory(id);
+    } else {
+      try {
+        // 检查是否是超级管理员
+        const user = await this.userRepository.findById(id);
+        if (user && user.roles.some(role => role.code === 'SUPER_ADMIN')) {
+          throw new ValidationError('不能删除超级管理员');
+        }
+        
+        result = await this.userRepository.delete(id);
+      } catch (error: any) {
+        console.log('数据库删除失败，回退到内存存储:', error.message);
+        result = this.deleteUserFromMemory(id);
+      }
     }
 
-    try {
-      // 检查是否是超级管理员
-      const user = await this.userRepository.findById(id);
-      if (user && user.roles.some(role => role.code === 'SUPER_ADMIN')) {
-        throw new ValidationError('不能删除超级管理员');
-      }
-      
-      return await this.userRepository.delete(id);
-    } catch (error: any) {
-      console.log('数据库删除失败，回退到内存存储:', error.message);
-      return this.deleteUserFromMemory(id);
+    // 如果删除成功，清理相关缓存
+    if (result) {
+      await this.clearUserCache(id);
     }
+
+    return result;
   }
 
   private deleteUserFromMemory(id: string): boolean {
@@ -442,5 +547,22 @@ export class UserService {
       createdAt: permission.createdAt.toISOString(),
       updatedAt: permission.updatedAt.toISOString(),
     };
+  }
+
+  // 清理用户相关缓存
+  private async clearUserCache(userId?: string): Promise<void> {
+    try {
+      if (userId) {
+        // 清理特定用户缓存
+        await this.cacheManager.del(`users:${userId}`);
+        console.log(`🧹 清理用户缓存: users:${userId}`);
+      }
+      
+      // 清理用户列表缓存
+      await this.cacheManager.delPattern('users:list:*');
+      console.log('🧹 清理用户列表缓存');
+    } catch (error) {
+      console.error('清理用户缓存失败:', error);
+    }
   }
 }

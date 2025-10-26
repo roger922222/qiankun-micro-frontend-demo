@@ -15,7 +15,7 @@ export class UserRoleRepository {
 
   async assignRole(userId: string, roleId: string): Promise<UserRole> {
     const existing = await this.repository.findOne({
-      where: { userId, roleId, deletedAt: null }
+      where: { userId, roleId, deletedAt: undefined }
     });
 
     if (existing) {
@@ -33,7 +33,7 @@ export class UserRoleRepository {
 
   async getUserRoles(userId: string): Promise<Role[]> {
     const userRoles = await this.repository.find({
-      where: { userId, deletedAt: null },
+      where: { userId, deletedAt: undefined },
       relations: ['role']
     });
 
@@ -42,7 +42,7 @@ export class UserRoleRepository {
 
   async getRoleUsers(roleId: string): Promise<User[]> {
     const userRoles = await this.repository.find({
-      where: { roleId, deletedAt: null },
+      where: { roleId, deletedAt: undefined },
       relations: ['user']
     });
 
@@ -51,7 +51,7 @@ export class UserRoleRepository {
 
   async hasRole(userId: string, roleId: string): Promise<boolean> {
     const count = await this.repository.count({
-      where: { userId, roleId, deletedAt: null }
+      where: { userId, roleId, deletedAt: undefined }
     });
 
     return count > 0;
