@@ -1,6 +1,8 @@
 lockfileVersion: 5.4
 
 specifiers:
+  '@types/cache-manager': ^4.0.6
+  '@types/cache-manager-redis-store': ^2.0.4
   '@types/pg': ^8.15.5
   concurrently: ^7.6.0
   husky: ^8.0.3
@@ -11,6 +13,8 @@ dependencies:
   '@types/pg': 8.15.5
 
 devDependencies:
+  '@types/cache-manager': 4.0.6
+  '@types/cache-manager-redis-store': 2.0.4
   concurrently: 7.6.0
   husky: 8.0.3
   lint-staged: 13.3.0
@@ -23,11 +27,21 @@ packages:
     engines: {node: '>=6.9.0'}
     dev: true
 
+  /@types/cache-manager-redis-store/2.0.4:
+    resolution: {integrity: sha512-EG4ac1KsUr07uv6N/O0X1OaQBNVKShVUxn+GwJQQpUkTEi4+KJl6yvqfwc4uTPT1+pwfKRgQhCoHQQCd/ObkZQ==}
+    dependencies:
+      '@types/cache-manager': 4.0.6
+      '@types/redis': 2.8.32
+    dev: true
+
+  /@types/cache-manager/4.0.6:
+    resolution: {integrity: sha512-8qL93MF05/xrzFm/LSPtzNEOE1eQF3VwGHAcQEylgp5hDSTe41jtFwbSYAPfyYcVa28y1vYSjIt0c1fLLUiC/Q==}
+    dev: true
+
   /@types/node/24.8.1:
     resolution: {integrity: sha512-alv65KGRadQVfVcG69MuB4IzdYVpRwMG/mq8KWOaoOdyY617P5ivaDiMCGOFDWD2sAn5Q0mR3mRtUOgm99hL9Q==}
     dependencies:
       undici-types: 7.14.0
-    dev: false
 
   /@types/pg/8.15.5:
     resolution: {integrity: sha512-LF7lF6zWEKxuT3/OR8wAZGzkg4ENGXFNyiV/JeOt9z5B+0ZVwbql9McqX5c/WStFq1GaGso7H1AzP/qSzmlCKQ==}
@@ -36,6 +50,12 @@ packages:
       pg-protocol: 1.10.3
       pg-types: 2.2.0
     dev: false
+
+  /@types/redis/2.8.32:
+    resolution: {integrity: sha512-7jkMKxcGq9p242exlbsVzuJb57KqHRhNl4dHoQu2Y5v9bCAbtIXXH0R3HleSQW4CTOqpHIYUW3t6tpUj4BVQ+w==}
+    dependencies:
+      '@types/node': 24.8.1
+    dev: true
 
   /ansi-escapes/5.0.0:
     resolution: {integrity: sha512-5GFMVX8HqE/TB+FuBJGuO5XG0WrsA6ptUqoODaT/n9mmUaZFkqnBueB4leqGBCmrUHnCnC4PCZTCd0E7QQ83bA==}
@@ -630,7 +650,6 @@ packages:
 
   /undici-types/7.14.0:
     resolution: {integrity: sha512-QQiYxHuyZ9gQUIrmPo3IA+hUl4KYk8uSA7cHrcKd/l3p1OTpZcM0Tbp9x7FAtXdAYhlasd60ncPpgu6ihG6TOA==}
-    dev: false
 
   /which/2.0.2:
     resolution: {integrity: sha512-BLI3Tl1TW3Pvl70l3yq3Y64i+awpwXqsGBYWkkqMtnbXgrMD+yj7rhW0kuEDxzJaYXGjEW5ogapKNMEKNMjibA==}

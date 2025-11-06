@@ -391,6 +391,19 @@ export class UserService {
     }
   }
 
+  /**
+   * 更新用户最后登录时间
+   */
+  async updateUserLastLogin(userId: string): Promise<void> {
+    try {
+      await this.userRepository.update(userId, {
+        lastLoginAt: new Date()
+      });
+    } catch (error) {
+      console.error('更新用户最后登录时间失败:', error);
+    }
+  }
+
   private updateUserInMemory(id: string, userData: UpdateUserRequest): any | null {
     const userIndex = mockUsers.findIndex(user => user.id === id);
     if (userIndex === -1) {
@@ -481,6 +494,23 @@ export class UserService {
   private validateEmail(email: string): boolean {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
+  }
+
+  /**
+   * 通过用户名获取用户（用于认证）
+   */
+  async getUserByUsername(username: string): Promise<any | null> {
+    if (!this.useDatabase) {
+      return mockUsers.find(u => u.username === username) || null;
+    }
+
+    try {
+      const user = await this.userRepository.findByUsername(username);
+      return user ? this.entityToDTO(user) : null;
+    } catch (error: any) {
+      console.log('数据库查询失败，回退到内存存储:', error.message);
+      return mockUsers.find(u => u.username === username) || null;
+    }
   }
 
   private async getRolesByIds(roleIds: string[]): Promise<Role[]> {

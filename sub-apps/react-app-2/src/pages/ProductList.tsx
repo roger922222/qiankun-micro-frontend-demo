@@ -1,8 +1,8 @@
 /**
- * 商品列表页面
+ * 商品列表页面 - 集成BFF API
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Table, Button, Space, Tag, Typography, Input, Select, Row, Col, Card, Statistic, message, Popconfirm } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, EyeOutlined, SearchOutlined, ReloadOutlined } from '@ant-design/icons';
 import { useProductStore, productSelectors, Product } from '../store/productStore';
@@ -25,7 +25,13 @@ const ProductList: React.FC = () => {
   const loading = useProductStore(productSelectors.loading);
   const productStats = useProductStore(productSelectors.productStats);
   const categories = useCategoryStore(categorySelectors.categories);
-  const { addProduct, updateProduct, deleteProduct } = useProductStore();
+  const { 
+    fetchProducts, 
+    fetchCategories, 
+    createProduct, 
+    updateProduct, 
+    deleteProduct 
+  } = useProductStore();
 
   // 处理模态框操作
   const handleShowModal = (mode: 'create' | 'edit' | 'view', product?: Product) => {
@@ -39,21 +45,46 @@ const ProductList: React.FC = () => {
     setSelectedProduct(undefined);
   };
 
-  const handleModalSubmit = (values: any) => {
-    if (modalMode === 'create') {
-      addProduct(values);
-      message.success('商品创建成功');
-    } else if (modalMode === 'edit' && selectedProduct) {
-      updateProduct(selectedProduct.id, values);
-      message.success('商品更新成功');
+  const handleModalSubmit = async (values: any) => {
+    try {
+      if (modalMode === 'create') {
+        await createProduct(values);
+        message.success('商品创建成功');
+      } else if (modalMode === 'edit' && selectedProduct) {
+        await updateProduct(selectedProduct.id, values);
+        message.success('商品更新成功');
+      }
+      handleModalCancel();
+    } catch (error) {
+      message.error(error instanceof Error ? error.message : '操作失败');
     }
-    handleModalCancel();
   };
 
-  const handleDelete = (id: string) => {
-    deleteProduct(id);
-    message.success('商品删除成功');
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteProduct(id);
+      message.success('商品删除成功');
+    } catch (error) {
+      message.error(error instanceof Error ? error.message : '删除失败');
+    }
   };
+
+  // 初始化数据
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        await Promise.all([
+          fetchProducts(),
+          fetchCategories()
+        ]);
+      } catch (error) {
+        console.error('加载数据失败:', error);
+        message.error('数据加载失败');
+      }
+    };
+
+    loadData();
+  }, [fetchProducts, fetchCategories]);
 
   const columns = [
     {

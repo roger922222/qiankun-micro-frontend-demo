@@ -1,51 +1,19 @@
-/**
- * 商品管理 Zustand Store
- * 使用Zustand进行状态管理，支持TypeScript类型安全
- */
-
+// 更新后的 Zustand store，集成 BFF API
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
 import { globalLogger } from '@shared/utils/logger';
-
-// 商品接口定义
-export interface Product {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  category: string;
-  stock: number;
-  status: 'active' | 'inactive' | 'discontinued';
-  images: string[];
-  tags: string[];
-  createdAt: string;
-  updatedAt: string;
-  createdBy: string;
-  updatedBy: string;
-}
-
-// 商品分类接口
-export interface ProductCategory {
-  id: string;
-  name: string;
-  description: string;
-  parentId?: string;
-  level: number;
-  sortOrder: number;
-  isActive: boolean;
-}
-
-// 商品筛选条件
-export interface ProductFilter {
-  keyword?: string;
-  category?: string;
-  status?: Product['status'];
-  priceRange?: [number, number];
-  tags?: string[];
-  sortBy?: 'name' | 'price' | 'stock' | 'createdAt' | 'updatedAt';
-  sortOrder?: 'asc' | 'desc';
-}
+import { productApi, categoryApi, inventoryApi, pricingApi } from '../services/productApi';
+import type { 
+  Product, 
+  ProductCategory, 
+  ProductFilter, 
+  ProductStats,
+  CreateProductDto,
+  UpdateProductDto,
+  CreateCategoryDto,
+  UpdateCategoryDto
+} from '../types';
 
 // Store状态接口
 interface ProductState {
@@ -71,15 +39,8 @@ interface ProductState {
   
   // Actions
   setProducts: (products: Product[]) => void;
-  addProduct: (product: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>) => void;
-  updateProduct: (id: string, updates: Partial<Product>) => void;
-  deleteProduct: (id: string) => void;
-  setSelectedProduct: (product: Product | null) => void;
-  
   setCategories: (categories: ProductCategory[]) => void;
-  addCategory: (category: Omit<ProductCategory, 'id'>) => void;
-  updateCategory: (id: string, updates: Partial<ProductCategory>) => void;
-  deleteCategory: (id: string) => void;
+  setSelectedProduct: (product: Product | null) => void;
   
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
@@ -93,21 +54,35 @@ interface ProductState {
   setFormData: (data: Partial<Product>) => void;
   clearFormData: () => void;
   
+  // API集成方法
+  fetchProducts: (filter?: ProductFilter, page?: number, pageSize?: number) => Promise<void>;
+  fetchCategories: () => Promise<void>;
+  fetchProductStats: () => Promise<ProductStats>;
+  
+  createProduct: (productData: CreateProductDto) => Promise<void>;
+  updateProduct: (id: string, updates: UpdateProductDto) => Promise<void>;
+  deleteProduct: (id: string) => Promise<void>;
+  
+  createCategory: (categoryData: CreateCategoryDto) => Promise<void>;
+  updateCategory: (id: string, updates: UpdateCategoryDto) => Promise<void>;
+  deleteCategory: (id: string) => Promise<void>;
+  
+  // 批量操作
+  batchUpdateProducts: (ids: string[], updates: Partial<Product>) => Promise<void>;
+  batchDeleteProducts: (ids: string[]) => Promise<void>;
+  
+  // 库存管理
+  updateStock: (productId: string, quantity: number, type: 'increase' | 'decrease') => Promise<void>;
+  fetchLowStockProducts: (threshold?: number) => Promise<void>;
+  
+  // 价格管理
+  batchUpdatePrices: (updates: Array<{ productId: string; price: number }>) => Promise<void>;
+  
   // 业务逻辑方法
   searchProducts: (keyword: string) => void;
   filterProducts: (filter: ProductFilter) => Product[];
   getProductsByCategory: (categoryId: string) => Product[];
-  getProductStats: () => {
-    total: number;
-    active: number;
-    inactive: number;
-    discontinued: number;
-    lowStock: number;
-  };
-  
-  // 批量操作
-  batchUpdateProducts: (ids: string[], updates: Partial<Product>) => void;
-  batchDeleteProducts: (ids: string[]) => void;
+  getProductStats: () => ProductStats;
   
   // 数据重置
   reset: () => void;
@@ -138,7 +113,7 @@ export const useProductStore = create<ProductState>()(
       immer((set, get) => ({
         ...initialState,
         
-        // 商品操作
+        // 基本状态管理
         setProducts: (products) => {
           set((state) => {
             state.products = products;
@@ -147,50 +122,10 @@ export const useProductStore = create<ProductState>()(
           globalLogger.info('Products updated', { count: products.length });
         },
         
-        addProduct: (productData) => {
-          const newProduct: Product = {
-            ...productData,
-            id: `product_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-            createdBy: 'current_user',
-            updatedBy: 'current_user'
-          };
-          
+        setCategories: (categories) => {
           set((state) => {
-            state.products.unshift(newProduct);
-            state.pagination.total = state.products.length;
+            state.categories = categories;
           });
-          
-          globalLogger.info('Product added', { productId: newProduct.id, name: newProduct.name });
-        },
-        
-        updateProduct: (id, updates) => {
-          set((state) => {
-            const index = state.products.findIndex(p => p.id === id);
-            if (index !== -1) {
-              state.products[index] = {
-                ...state.products[index],
-                ...updates,
-                updatedAt: new Date().toISOString(),
-                updatedBy: 'current_user'
-              };
-            }
-          });
-          
-          globalLogger.info('Product updated', { productId: id, updates });
-        },
-        
-        deleteProduct: (id) => {
-          set((state) => {
-            state.products = state.products.filter(p => p.id !== id);
-            state.pagination.total = state.products.length;
-            if (state.selectedProduct?.id === id) {
-              state.selectedProduct = null;
-            }
-          });
-          
-          globalLogger.info('Product deleted', { productId: id });
         },
         
         setSelectedProduct: (product) => {
@@ -199,42 +134,6 @@ export const useProductStore = create<ProductState>()(
           });
         },
         
-        // 分类操作
-        setCategories: (categories) => {
-          set((state) => {
-            state.categories = categories;
-          });
-        },
-        
-        addCategory: (categoryData) => {
-          const newCategory: ProductCategory = {
-            ...categoryData,
-            id: `category_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-          };
-          
-          set((state) => {
-            state.categories.push(newCategory);
-          });
-          
-          globalLogger.info('Category added', { categoryId: newCategory.id, name: newCategory.name });
-        },
-        
-        updateCategory: (id, updates) => {
-          set((state) => {
-            const index = state.categories.findIndex(c => c.id === id);
-            if (index !== -1) {
-              state.categories[index] = { ...state.categories[index], ...updates };
-            }
-          });
-        },
-        
-        deleteCategory: (id) => {
-          set((state) => {
-            state.categories = state.categories.filter(c => c.id !== id);
-          });
-        },
-        
-        // UI状态管理
         setLoading: (loading) => {
           set((state) => {
             state.loading = loading;
@@ -297,7 +196,368 @@ export const useProductStore = create<ProductState>()(
           });
         },
         
-        // 业务逻辑方法
+        // API集成方法
+        fetchProducts: async (filter, page = 1, pageSize = 10) => {
+          const { setLoading, setError, setProducts, setPagination } = get();
+          
+          try {
+            setLoading(true);
+            setError(null);
+            
+            const response = await productApi.getProducts(filter, page, pageSize);
+            
+            if (response.success && response.data) {
+              setProducts(response.data);
+              setPagination(response.pagination);
+            } else {
+              throw new Error(response.message || '获取商品列表失败');
+            }
+          } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : '获取商品列表失败';
+            setError(errorMessage);
+            globalLogger.error('Fetch products error', error instanceof Error ? error : new Error(errorMessage));
+            throw error;
+          } finally {
+            setLoading(false);
+          }
+        },
+        
+        fetchCategories: async () => {
+          const { setLoading, setError, setCategories } = get();
+          
+          try {
+            setLoading(true);
+            setError(null);
+            
+            const response = await categoryApi.getCategories();
+            
+            if (response.success && response.data) {
+              setCategories(response.data);
+            } else {
+              throw new Error(response.message || '获取分类列表失败');
+            }
+          } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : '获取分类列表失败';
+            setError(errorMessage);
+            globalLogger.error('Fetch categories error', error instanceof Error ? error : new Error(errorMessage));
+            throw error;
+          } finally {
+            setLoading(false);
+          }
+        },
+        
+        fetchProductStats: async () => {
+          const { setLoading, setError } = get();
+          
+          try {
+            setLoading(true);
+            setError(null);
+            
+            const response = await productApi.getProductStats();
+            
+            if (response.success && response.data) {
+              return response.data;
+            } else {
+              throw new Error(response.message || '获取商品统计失败');
+            }
+          } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : '获取商品统计失败';
+            setError(errorMessage);
+            globalLogger.error('Fetch product stats error', error instanceof Error ? error : new Error(errorMessage));
+            throw error;
+          } finally {
+            setLoading(false);
+          }
+        },
+        
+        createProduct: async (productData) => {
+          const { setLoading, setError, fetchProducts, filter, pagination } = get();
+          
+          try {
+            setLoading(true);
+            setError(null);
+            
+            const response = await productApi.createProduct(productData);
+            
+            if (response.success && response.data) {
+              globalLogger.info('Product created via BFF', { productId: response.data.id, name: response.data.name });
+              // 重新获取商品列表
+              await fetchProducts(filter, pagination.current, pagination.pageSize);
+            } else {
+              throw new Error(response.message || '创建商品失败');
+            }
+          } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : '创建商品失败';
+            setError(errorMessage);
+            globalLogger.error('Create product error', error instanceof Error ? error : new Error(errorMessage));
+            throw error;
+          } finally {
+            setLoading(false);
+          }
+        },
+        
+        updateProduct: async (id, updates) => {
+          const { setLoading, setError, fetchProducts, filter, pagination } = get();
+          
+          try {
+            setLoading(true);
+            setError(null);
+            
+            const response = await productApi.updateProduct(id, updates);
+            
+            if (response.success && response.data) {
+              globalLogger.info('Product updated via BFF', { productId: id, updates });
+              // 重新获取商品列表
+              await fetchProducts(filter, pagination.current, pagination.pageSize);
+            } else {
+              throw new Error(response.message || '更新商品失败');
+            }
+          } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : '更新商品失败';
+            setError(errorMessage);
+            globalLogger.error('Update product error', error instanceof Error ? error : new Error(errorMessage));
+            throw error;
+          } finally {
+            setLoading(false);
+          }
+        },
+        
+        deleteProduct: async (id) => {
+          const { setLoading, setError, fetchProducts, filter, pagination } = get();
+          
+          try {
+            setLoading(true);
+            setError(null);
+            
+            const response = await productApi.deleteProduct(id);
+            
+            if (response.success && response.data) {
+              globalLogger.info('Product deleted via BFF', { productId: id });
+              // 重新获取商品列表
+              await fetchProducts(filter, pagination.current, pagination.pageSize);
+            } else {
+              throw new Error(response.message || '删除商品失败');
+            }
+          } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : '删除商品失败';
+            setError(errorMessage);
+            globalLogger.error('Delete product error', error instanceof Error ? error : new Error(errorMessage));
+            throw error;
+          } finally {
+            setLoading(false);
+          }
+        },
+        
+        createCategory: async (categoryData) => {
+          const { setLoading, setError, fetchCategories } = get();
+          
+          try {
+            setLoading(true);
+            setError(null);
+            
+            const response = await categoryApi.createCategory(categoryData);
+            
+            if (response.success && response.data) {
+              globalLogger.info('Category created via BFF', { categoryId: response.data.id, name: response.data.name });
+              // 重新获取分类列表
+              await fetchCategories();
+            } else {
+              throw new Error(response.message || '创建分类失败');
+            }
+          } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : '创建分类失败';
+            setError(errorMessage);
+            globalLogger.error('Create category error', error instanceof Error ? error : new Error(errorMessage));
+            throw error;
+          } finally {
+            setLoading(false);
+          }
+        },
+        
+        updateCategory: async (id, updates) => {
+          const { setLoading, setError, fetchCategories } = get();
+          
+          try {
+            setLoading(true);
+            setError(null);
+            
+            const response = await categoryApi.updateCategory(id, updates);
+            
+            if (response.success && response.data) {
+              globalLogger.info('Category updated via BFF', { categoryId: id, updates });
+              // 重新获取分类列表
+              await fetchCategories();
+            } else {
+              throw new Error(response.message || '更新分类失败');
+            }
+          } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : '更新分类失败';
+            setError(errorMessage);
+            globalLogger.error('Update category error', error instanceof Error ? error : new Error(errorMessage));
+            throw error;
+          } finally {
+            setLoading(false);
+          }
+        },
+        
+        deleteCategory: async (id) => {
+          const { setLoading, setError, fetchCategories } = get();
+          
+          try {
+            setLoading(true);
+            setError(null);
+            
+            const response = await categoryApi.deleteCategory(id);
+            
+            if (response.success && response.data) {
+              globalLogger.info('Category deleted via BFF', { categoryId: id });
+              // 重新获取分类列表
+              await fetchCategories();
+            } else {
+              throw new Error(response.message || '删除分类失败');
+            }
+          } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : '删除分类失败';
+            setError(errorMessage);
+            globalLogger.error('Delete category error', error instanceof Error ? error : new Error(errorMessage));
+            throw error;
+          } finally {
+            setLoading(false);
+          }
+        },
+        
+        // 批量操作
+        batchUpdateProducts: async (ids, updates) => {
+          const { setLoading, setError, fetchProducts, filter, pagination } = get();
+          
+          try {
+            setLoading(true);
+            setError(null);
+            
+            const response = await productApi.batchUpdateProducts(ids, updates);
+            
+            if (response.success && response.data) {
+              globalLogger.info('Products batch updated via BFF', { count: ids.length, updates });
+              // 重新获取商品列表
+              await fetchProducts(filter, pagination.current, pagination.pageSize);
+            } else {
+              throw new Error(response.message || '批量更新商品失败');
+            }
+          } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : '批量更新商品失败';
+            setError(errorMessage);
+            globalLogger.error('Batch update products error', error instanceof Error ? error : new Error(errorMessage));
+            throw error;
+          } finally {
+            setLoading(false);
+          }
+        },
+        
+        batchDeleteProducts: async (ids) => {
+          const { setLoading, setError, fetchProducts, filter, pagination } = get();
+          
+          try {
+            setLoading(true);
+            setError(null);
+            
+            const response = await productApi.batchDeleteProducts(ids);
+            
+            if (response.success && response.data) {
+              globalLogger.info('Products batch deleted via BFF', { count: ids.length });
+              // 重新获取商品列表
+              await fetchProducts(filter, pagination.current, pagination.pageSize);
+            } else {
+              throw new Error(response.message || '批量删除商品失败');
+            }
+          } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : '批量删除商品失败';
+            setError(errorMessage);
+            globalLogger.error('Batch delete products error', error instanceof Error ? error : new Error(errorMessage));
+            throw error;
+          } finally {
+            setLoading(false);
+          }
+        },
+        
+        // 库存管理
+        updateStock: async (productId, quantity, type) => {
+          const { setLoading, setError, fetchProducts, filter, pagination } = get();
+          
+          try {
+            setLoading(true);
+            setError(null);
+            
+            const response = await inventoryApi.updateStock(productId, quantity, type);
+            
+            if (response.success && response.data) {
+              globalLogger.info('Stock updated via BFF', { productId, quantity, type });
+              // 重新获取商品列表
+              await fetchProducts(filter, pagination.current, pagination.pageSize);
+            } else {
+              throw new Error(response.message || '更新库存失败');
+            }
+          } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : '更新库存失败';
+            setError(errorMessage);
+            globalLogger.error('Update stock error', error instanceof Error ? error : new Error(errorMessage));
+            throw error;
+          } finally {
+            setLoading(false);
+          }
+        },
+        
+        fetchLowStockProducts: async (threshold = 10) => {
+          const { setLoading, setError, setProducts } = get();
+          
+          try {
+            setLoading(true);
+            setError(null);
+            
+            const response = await inventoryApi.getLowStockProducts(threshold);
+            
+            if (response.success && response.data) {
+              setProducts(response.data);
+            } else {
+              throw new Error(response.message || '获取低库存商品失败');
+            }
+          } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : '获取低库存商品失败';
+            setError(errorMessage);
+            globalLogger.error('Fetch low stock products error', error instanceof Error ? error : new Error(errorMessage));
+            throw error;
+          } finally {
+            setLoading(false);
+          }
+        },
+        
+        // 价格管理
+        batchUpdatePrices: async (updates) => {
+          const { setLoading, setError, fetchProducts, filter, pagination } = get();
+          
+          try {
+            setLoading(true);
+            setError(null);
+            
+            const response = await pricingApi.batchUpdatePrices(updates);
+            
+            if (response.success && response.data) {
+              globalLogger.info('Prices batch updated via BFF', { count: updates.length });
+              // 重新获取商品列表
+              await fetchProducts(filter, pagination.current, pagination.pageSize);
+            } else {
+              throw new Error(response.message || '批量更新价格失败');
+            }
+          } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : '批量更新价格失败';
+            setError(errorMessage);
+            globalLogger.error('Batch update prices error', error instanceof Error ? error : new Error(errorMessage));
+            throw error;
+          } finally {
+            setLoading(false);
+          }
+        },
+        
+        // 业务逻辑方法（本地处理）
         searchProducts: (keyword) => {
           set((state) => {
             state.filter.keyword = keyword;
@@ -375,31 +635,6 @@ export const useProductStore = create<ProductState>()(
           };
         },
         
-        // 批量操作
-        batchUpdateProducts: (ids, updates) => {
-          set((state) => {
-            state.products = state.products.map(p => 
-              ids.includes(p.id) 
-                ? { ...p, ...updates, updatedAt: new Date().toISOString(), updatedBy: 'current_user' }
-                : p
-            );
-          });
-          
-          globalLogger.info('Products batch updated', { count: ids.length, updates });
-        },
-        
-        batchDeleteProducts: (ids) => {
-          set((state) => {
-            state.products = state.products.filter(p => !ids.includes(p.id));
-            state.pagination.total = state.products.length;
-            if (state.selectedProduct && ids.includes(state.selectedProduct.id)) {
-              state.selectedProduct = null;
-            }
-          });
-          
-          globalLogger.info('Products batch deleted', { count: ids.length });
-        },
-        
         // 重置状态
         reset: () => {
           set(initialState);
@@ -407,7 +642,7 @@ export const useProductStore = create<ProductState>()(
         }
       })),
       {
-        name: 'product-store',
+        name: 'product-store-bff',
         partialize: (state) => ({
           products: state.products,
           categories: state.categories,
@@ -417,7 +652,7 @@ export const useProductStore = create<ProductState>()(
       }
     ),
     {
-      name: 'product-store'
+      name: 'product-store-bff'
     }
   )
 );

@@ -64,7 +64,13 @@ install_dependencies() {
             cd "sub-apps/$app" && pnpm install && cd ../..
             
             # 安装后端依赖（如果存在）
-            if [ -d "sub-apps/$app/backend" ] && [ "$app" != "react-app-1" ]; then
+            if [ "$app" = "react-app-1" ] && [ -d "sub-apps/$app/backend" ] && [ -f "sub-apps/$app/tsconfig.backend.json" ]; then
+                echo -e "${PURPLE}    - 安装 $app 后端依赖...${NC}"
+                cd "sub-apps/$app/backend" && pnpm install && cd ../../..
+            elif [ "$app" = "react-app-2" ] && [ -d "sub-apps/$app/bff" ] && [ -f "sub-apps/$app/bff/package.json" ]; then
+                echo -e "${PURPLE}    - 安装 $app BFF依赖...${NC}"
+                cd "sub-apps/$app/bff" && pnpm install && cd ../../..
+            elif [ -d "sub-apps/$app/backend" ] && [ "$app" != "react-app-1" ] && [ "$app" != "react-app-2" ]; then
                 echo -e "${PURPLE}    - 安装 $app 后端依赖...${NC}"
                 cd "sub-apps/$app/backend" && pnpm install && cd ../../..
             fi
@@ -96,6 +102,13 @@ has_backend() {
     if [ "$app_path" = "sub-apps/react-app-1" ]; then
         if [ -d "$app_path/backend" ] && [ -f "$app_path/tsconfig.backend.json" ]; then
             return 0  # 有后端
+        else
+            return 1  # 无后端
+        fi
+    # 对于react-app-2，检查是否有bff目录
+    elif [ "$app_path" = "sub-apps/react-app-2" ]; then
+        if [ -d "$app_path/bff" ] && [ -f "$app_path/bff/package.json" ]; then
+            return 0  # 有BFF后端
         else
             return 1  # 无后端
         fi
@@ -143,11 +156,16 @@ start_app() {
             echo -e "${PURPLE}  - 启动 $display_name (前端: $frontend_port, 后端: $backend_port)...${NC}"
             cd "$app_path"
             # 启动前端
-            pnpm run dev:frontend > "../../logs/${app_name}-frontend.log" 2>&1 &
+            pnpm run dev > "../../logs/${app_name}-frontend.log" 2>&1 &
             # 启动后端
             if [ "$app_name" = "react-app-1" ]; then
                 # react-app-1使用合并后的配置
                 pnpm run dev:backend > "../../logs/${app_name}-backend.log" 2>&1 &
+            elif [ "$app_name" = "react-app-2" ]; then
+                # react-app-2使用BFF配置
+                cd bff
+                pnpm run dev > "../../../logs/${app_name}-bff.log" 2>&1 &
+                cd ..
             elif [ -f "backend/package.json" ]; then
                 # 其他应用使用原有方式
                 cd backend
@@ -189,8 +207,20 @@ start_applications() {
     # React App 1 - 用户管理 (前端: 3001, 后端: 3002)
     start_app "react-app-1" "sub-apps/react-app-1" "3001" "3002" "用户管理系统"
     
-    # React App 2 - 商品管理 (前端: 3012)
-    start_app "react-app-2" "sub-apps/react-app-2" "3012" "" "商品管理系统"
+    # React App 2 - 商品管理 (前端: 3012, BFF: 3013)
+    start_app "react-app-2" "sub-apps/react-app-2" "3012" "3013" "商品管理系统"
+    
+    # 等待React App 2的BFF服务启动
+    if has_backend "sub-apps/react-app-2"; then
+        echo -e "${BLUE}⏳ 等待React App 2 BFF服务启动...${NC}"
+        sleep 5
+        # 检查BFF健康状态
+        if curl -s http://localhost:3013/api/health >/dev/null 2>&1; then
+            echo -e "${GREEN}✅ React App 2 BFF服务启动成功${NC}"
+        else
+            echo -e "${YELLOW}⚠️  React App 2 BFF服务可能未完全启动，继续启动其他应用...${NC}"
+        fi
+    fi
     
     # React App 3 - 订单管理 (前端: 3003)
     start_app "react-app-3" "sub-apps/react-app-3" "3003" "" "订单管理系统"
@@ -234,7 +264,13 @@ show_status() {
         fi
     fi
     
-    echo -e "  商品管理系统:      http://localhost:3012"
+    if [ -d "sub-apps/react-app-2" ]; then
+        if has_backend "sub-apps/react-app-2"; then
+            echo -e "  商品管理系统:      http://localhost:3012 (BFF: 3013)"
+        else
+            echo -e "  商品管理系统:      http://localhost:3012"
+        fi
+    fi
     echo -e "  订单管理系统:      http://localhost:3003"
     echo -e "  数据看板:          http://localhost:3004"
     echo -e "  设置中心:          http://localhost:3005"
@@ -269,6 +305,7 @@ cleanup() {
     pkill -f "vite.*--port 300" 2>/dev/null || true
     pkill -f "pnpm.*dev" 2>/dev/null || true
     pkill -f "tsx.*app.ts" 2>/dev/null || true
+    pkill -f "next.*dev.*3013" 2>/dev/null || true  # 停止react-app-2的BFF服务
     
     echo -e "${GREEN}✅ 所有应用已停止${NC}"
     exit 0
