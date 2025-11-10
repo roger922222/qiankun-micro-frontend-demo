@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SafeStyleProvider 修复验证 - qiankun 微前端</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background: #f0f2f5;
+        }
+        
+        .test-header {
+            background: #001529;
+            color: white;
+            padding: 16px 24px;
+            font-size: 18px;
+            font-weight: 500;
+        }
+        
+        .test-info {
+            background: #e6f7ff;
+            border: 1px solid #91d5ff;
+            border-radius: 6px;
+            padding: 16px;
+            margin: 16px 24px;
+        }
+        
+        .test-info h3 {
+            margin: 0 0 12px 0;
+            color: #0050b3;
+        }
+        
+        .test-info p {
+            margin: 8px 0;
+            color: #003a8c;
+        }
+        
+        .test-info .highlight {
+            background: #fff2f0;
+            border: 1px solid #ffccc7;
+            border-radius: 4px;
+            padding: 8px;
+            margin: 8px 0;
+            color: #a8071a;
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+        }
+        
+        .app-container {
+            height: calc(100vh - 120px);
+            margin: 24px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        #subAppContainer {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 200px;
+            color: #666;
+            font-size: 16px;
+        }
+        
+        .error {
+            color: #ff4d4f;
+            background: #fff2f0;
+            border: 1px solid #ffccc7;
+            border-radius: 6px;
+            padding: 16px;
+            margin: 16px 24px;
+        }
+        
+        .success {
+            color: #52c41a;
+            background: #f6ffed;
+            border: 1px solid #b7eb8f;
+            border-radius: 6px;
+            padding: 16px;
+            margin: 16px 24px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-header">
+        SafeStyleProvider scoped 样式修复验证 - qiankun 微前端测试
+    </div>
+    
+    <div class="test-info">
+        <h3>🔧 修复内容</h3>
+        <p><strong>问题：</strong>SafeStyleProvider.vue 组件使用 scoped 样式导致 qiankun 样式沙箱冲突</p>
+        <div class="highlight">
+            TypeError: Cannot read properties of null (reading 'contains')<br>
+            at HTMLHeadElement.appendChildOrInsertBefore [as appendChild] (qiankun.js?v=c48d4e30:6300:40)
+        </div>
+        <p><strong>修复方案：</strong></p>
+        <p>✅ 移除 SafeStyleProvider.vue 的 &lt;style scoped&gt;，改为 &lt;style&gt;</p>
+        <p>✅ 移除 App.vue 的 &lt;style scoped&gt;，使用 .vue-message-app 命名空间</p>
+        <p>✅ 确保所有样式使用命名空间隔离，避免样式冲突</p>
+    </div>
+
+    <div class="app-container">
+        <div id="subAppContainer">
+            <div class="loading">正在加载 Vue 消息中心应用...</div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/qiankun@2.10.16/dist/index.umd.js"></script>
+    <script>
+        const { registerMicroApps, start, loadMicroApp } = window.qiankun;
+        
+        // 配置子应用
+        const microApps = [
+            {
+                name: 'vue-message-center',
+                entry: 'http://localhost:3007/', // Vue 应用端口
+                container: '#subAppContainer',
+                activeRule: () => true,
+                props: {
+                    testMode: 'SafeStyleProvider修复验证'
+                }
+            }
+        ];
+
+        // 注册微应用
+        registerMicroApps(microApps, {
+            beforeLoad: [
+                app => {
+                    console.log('[qiankun] before load', app.name);
+                    return Promise.resolve();
+                }
+            ],
+            beforeMount: [
+                app => {
+                    console.log('[qiankun] before mount', app.name);
+                    return Promise.resolve();
+                }
+            ],
+            afterMount: [
+                app => {
+                    console.log('[qiankun] after mount', app.name);
+                    
+                    // 检查是否有样式错误
+                    setTimeout(() => {
+                        const errors = window.qiankunStyleErrors || [];
+                        if (errors.length === 0) {
+                            showResult('success', '✅ 修复成功！SafeStyleProvider.vue 样式错误已解决');
+                        } else {
+                            showResult('error', `❌ 仍有样式错误：${errors.join(', ')}`);
+                        }
+                    }, 2000);
+                    
+                    return Promise.resolve();
+                }
+            ],
+            beforeUnmount: [
+                app => {
+                    console.log('[qiankun] before unmount', app.name);
+                    return Promise.resolve();
+                }
+            ]
+        });
+
+        // 启动 qiankun
+        start({
+            sandbox: {
+                experimentalStyleIsolation: true
+            }
+        });
+
+        // 错误监听
+        window.addEventListener('error', (event) => {
+            if (event.message && event.message.includes('Cannot read properties of null')) {
+                console.error('🚨 检测到样式相关错误:', event);
+                showResult('error', `❌ 样式错误仍然存在: ${event.message}`);
+                
+                // 记录错误
+                window.qiankunStyleErrors = window.qiankunStyleErrors || [];
+                window.qiankunStyleErrors.push(event.message);
+            }
+        });
+
+        // 显示测试结果
+        function showResult(type, message) {
+            const existingResult = document.querySelector('.test-result');
+            if (existingResult) {
+                existingResult.remove();
+            }
+            
+            const resultDiv = document.createElement('div');
+            resultDiv.className = `test-result ${type}`;
+            resultDiv.innerHTML = `<strong>测试结果：</strong>${message}`;
+            
+            const container = document.querySelector('.app-container');
+            container.parentNode.insertBefore(resultDiv, container);
+        }
+
+        // 超时检测
+        setTimeout(() => {
+            const loading = document.querySelector('.loading');
+            if (loading && loading.textContent.includes('正在加载')) {
+                showResult('error', '❌ 应用加载超时，请检查 Vue 应用是否在 http://localhost:3007/ 正常运行');
+            }
+        }, 10000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,285 @@
+version: '3.8'
+
+services:
+  # PostgreSQL 数据库
+  postgres:
+    image: postgres:15-alpine
+    container_name: qiankun-postgres
+    environment:
+      POSTGRES_DB: qiankun_demo
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres123
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    networks:
+      - qiankun-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis 缓存
+  redis:
+    image: redis:7-alpine
+    container_name: qiankun-redis
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - qiankun-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  # React App 2 BFF 服务
+  react-app-2-bff:
+    build:
+      context: .
+      dockerfile: docker/bff/Dockerfile
+    container_name: qiankun-react-app-2-bff
+    environment:
+      NODE_ENV: production
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: qiankun_demo
+      DB_USER: postgres
+      DB_PASSWORD: postgres123
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      JWT_SECRET: your-jwt-secret-key
+      API_RATE_LIMIT: 100
+    ports:
+      - "3002:3002"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - qiankun-network
+    volumes:
+      - ./apps/react-app-2-bff:/app
+      - /app/node_modules
+      - /app/.next
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3002/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # 主应用
+  main-app:
+    build:
+      context: .
+      dockerfile: docker/main-app/Dockerfile
+    container_name: qiankun-main-app
+    environment:
+      NODE_ENV: production
+      VITE_SUB_APPS_BASE_URL: http://localhost
+    ports:
+      - "3000:3000"
+    networks:
+      - qiankun-network
+    volumes:
+      - ./apps/main-app:/app
+      - /app/node_modules
+      - /app/dist
+    depends_on:
+      - react-app-2-bff
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # React 子应用 1
+  react-app-1:
+    build:
+      context: .
+      dockerfile: docker/react-app/Dockerfile
+      args:
+        APP_NAME: react-app-1
+        APP_PORT: 3001
+    container_name: qiankun-react-app-1
+    ports:
+      - "3001:3001"
+    networks:
+      - qiankun-network
+    volumes:
+      - ./apps/sub-apps/react-app-1:/app
+      - /app/node_modules
+      - /app/dist
+
+  # React 子应用 2
+  react-app-2:
+    build:
+      context: .
+      dockerfile: docker/react-app/Dockerfile
+      args:
+        APP_NAME: react-app-2
+        APP_PORT: 3012
+    container_name: qiankun-react-app-2
+    ports:
+      - "3012:3012"
+    networks:
+      - qiankun-network
+    volumes:
+      - ./apps/sub-apps/react-app-2:/app
+      - /app/node_modules
+      - /app/dist
+    depends_on:
+      - react-app-2-bff
+
+  # React 子应用 3
+  react-app-3:
+    build:
+      context: .
+      dockerfile: docker/react-app/Dockerfile
+      args:
+        APP_NAME: react-app-3
+        APP_PORT: 3003
+    container_name: qiankun-react-app-3
+    ports:
+      - "3003:3003"
+    networks:
+      - qiankun-network
+    volumes:
+      - ./apps/sub-apps/react-app-3:/app
+      - /app/node_modules
+      - /app/dist
+
+  # React 子应用 4
+  react-app-4:
+    build:
+      context: .
+      dockerfile: docker/react-app/Dockerfile
+      args:
+        APP_NAME: react-app-4
+        APP_PORT: 3004
+    container_name: qiankun-react-app-4
+    ports:
+      - "3004:3004"
+    networks:
+      - qiankun-network
+    volumes:
+      - ./apps/sub-apps/react-app-4:/app
+      - /app/node_modules
+      - /app/dist
+
+  # React 子应用 5
+  react-app-5:
+    build:
+      context: .
+      dockerfile: docker/react-app/Dockerfile
+      args:
+        APP_NAME: react-app-5
+        APP_PORT: 3005
+    container_name: qiankun-react-app-5
+    ports:
+      - "3005:3005"
+    networks:
+      - qiankun-network
+    volumes:
+      - ./apps/sub-apps/react-app-5:/app
+      - /app/node_modules
+      - /app/dist
+
+  # Vue 子应用 1
+  vue-app-1:
+    build:
+      context: .
+      dockerfile: docker/vue-app/Dockerfile
+      args:
+        APP_NAME: vue-app-1
+        APP_PORT: 3006
+    container_name: qiankun-vue-app-1
+    ports:
+      - "3006:3006"
+    networks:
+      - qiankun-network
+    volumes:
+      - ./apps/sub-apps/vue-app-1:/app
+      - /app/node_modules
+      - /app/dist
+
+  # Vue 子应用 2
+  vue-app-2:
+    build:
+      context: .
+      dockerfile: docker/vue-app/Dockerfile
+      args:
+        APP_NAME: vue-app-2
+        APP_PORT: 3007
+    container_name: qiankun-vue-app-2
+    ports:
+      - "3007:3007"
+    networks:
+      - qiankun-network
+    volumes:
+      - ./apps/sub-apps/vue-app-2:/app
+      - /app/node_modules
+      - /app/dist
+
+  # Vue 子应用 3
+  vue-app-3:
+    build:
+      context: .
+      dockerfile: docker/vue-app/Dockerfile
+      args:
+        APP_NAME: vue-app-3
+        APP_PORT: 3008
+    container_name: qiankun-vue-app-3
+    ports:
+      - "3008:3008"
+    networks:
+      - qiankun-network
+    volumes:
+      - ./apps/sub-apps/vue-app-3:/app
+      - /app/node_modules
+      - /app/dist
+
+  # Nginx 反向代理
+  nginx:
+    image: nginx:alpine
+    container_name: qiankun-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./docker/nginx/conf.d:/etc/nginx/conf.d
+      - ./docker/nginx/ssl:/etc/nginx/ssl
+    depends_on:
+      - main-app
+      - react-app-1
+      - react-app-2
+      - react-app-3
+      - react-app-4
+      - react-app-5
+      - vue-app-1
+      - vue-app-2
+      - vue-app-3
+    networks:
+      - qiankun-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  qiankun-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:

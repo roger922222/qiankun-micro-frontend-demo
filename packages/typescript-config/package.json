@@ -1,0 +1,15 @@
+{
+  "name": "@qiankun-demo/typescript-config",
+  "version": "2.0.0",
+  "description": "TypeScript配置共享包",
+  "main": "base.json",
+  "files": [
+    "base.json",
+    "react.json",
+    "vue.json",
+    "node.json"
+  ],
+  "devDependencies": {
+    "typescript": "^5.3.0"
+  }
+}

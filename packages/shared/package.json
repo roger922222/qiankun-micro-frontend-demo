@@ -1,0 +1,50 @@
+{
+  "name": "@qiankun-demo/shared",
+  "version": "2.0.0",
+  "description": "共享工具包 - 包含类型定义、工具函数、通信机制等",
+  "main": "dist/index.js",
+  "module": "dist/index.esm.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "rollup -c rollup.config.js",
+    "dev": "rollup -c rollup.config.js -w",
+    "clean": "rimraf dist",
+    "type-check": "tsc --noEmit",
+    "lint": "eslint src --ext .ts,.tsx",
+    "test": "vitest",
+    "test:watch": "vitest --watch",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "eventemitter3": "^5.0.1",
+    "axios": "^1.6.2",
+    "js-cookie": "^3.0.5",
+    "crypto-js": "^4.2.0"
+  },
+  "devDependencies": {
+    "@types/js-cookie": "^3.0.6",
+    "@types/crypto-js": "^4.2.1",
+    "@rollup/plugin-typescript": "^11.1.5",
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "@rollup/plugin-commonjs": "^25.0.7",
+    "rollup": "^4.6.1",
+    "typescript": "^5.3.0",
+    "vitest": "^1.1.0",
+    "rimraf": "^5.0.5"
+  },
+  "peerDependencies": {
+    "vue": "^3.3.0",
+    "react": "^18.0.0"
+  },
+  "peerDependenciesMeta": {
+    "vue": {
+      "optional": true
+    },
+    "react": {
+      "optional": true
+    }
+  }
+}

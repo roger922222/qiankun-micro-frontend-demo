@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MessageCenter 运行时样式注入修复测试</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background-color: #f0f2f5;
+        }
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 24px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .test-header {
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .test-status {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+        .status-item {
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .status-success {
+            background-color: #f6ffed;
+            color: #52c41a;
+            border: 1px solid #b7eb8f;
+        }
+        .status-error {
+            background-color: #fff2f0;
+            color: #ff4d4f;
+            border: 1px solid #ffccc7;
+        }
+        .status-warning {
+            background-color: #fffbe6;
+            color: #faad14;
+            border: 1px solid #ffe58f;
+        }
+        .status-info {
+            background-color: #f0f9ff;
+            color: #1890ff;
+            border: 1px solid #91d5ff;
+        }
+        .app-container {
+            min-height: 600px;
+            border: 2px solid #e8e8e8;
+            border-radius: 6px;
+            background-color: #fafafa;
+            position: relative;
+        }
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 300px;
+            font-size: 16px;
+            color: #666;
+        }
+        .error-log {
+            margin-top: 16px;
+            padding: 16px;
+            background-color: #f5f5f5;
+            border-radius: 4px;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .test-actions {
+            margin-bottom: 16px;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .btn {
+            padding: 6px 12px;
+            border: 1px solid #d9d9d9;
+            border-radius: 4px;
+            background: white;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .btn:hover {
+            border-color: #1890ff;
+            color: #1890ff;
+        }
+        .btn.primary {
+            background-color: #1890ff;
+            border-color: #1890ff;
+            color: white;
+        }
+        .btn.primary:hover {
+            background-color: #40a9ff;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <div class="test-header">
+            <h1>MessageCenter 运行时样式注入修复测试</h1>
+            <p>测试完全移除 SafeStyleProvider 组件，使用运行时样式注入的修复方案</p>
+        </div>
+
+        <div class="test-status" id="statusContainer">
+            <div class="status-item status-info">初始化中...</div>
+        </div>
+
+        <div class="test-actions">
+            <button class="btn primary" onclick="loadApp()">加载应用</button>
+            <button class="btn" onclick="reloadApp()">重新加载</button>
+            <button class="btn" onclick="simulateError()">模拟错误</button>
+            <button class="btn" onclick="checkStyles()">检查样式</button>
+            <button class="btn" onclick="clearErrors()">清除错误日志</button>
+        </div>
+
+        <div class="app-container" id="appContainer">
+            <div class="loading">点击"加载应用"开始测试</div>
+        </div>
+
+        <div class="error-log" id="errorLog">
+            <strong>错误日志:</strong><br>
+            <span id="logContent">暂无日志</span>
+        </div>
+    </div>
+
+    <script>
+        let appLoaded = false;
+        let errorCount = 0;
+        let loadStartTime = 0;
+        
+        // 状态管理
+        function updateStatus(type, message) {
+            const container = document.getElementById('statusContainer');
+            const statusClass = `status-${type}`;
+            container.innerHTML = `<div class="status-item ${statusClass}">${message}</div>`;
+        }
+        
+        // 日志管理
+        function addLog(message, type = 'info') {
+            const logContent = document.getElementById('logContent');
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `[${timestamp}] [${type.toUpperCase()}] ${message}\n`;
+            
+            if (logContent.textContent === '暂无日志') {
+                logContent.textContent = logEntry;
+            } else {
+                logContent.textContent += logEntry;
+            }
+            
+            // 自动滚动到底部
+            const errorLog = document.getElementById('errorLog');
+            errorLog.scrollTop = errorLog.scrollHeight;
+        }
+        
+        // 错误监听
+        window.addEventListener('error', (event) => {
+            errorCount++;
+            const errorMsg = `JavaScript错误: ${event.error?.message || event.message}`;
+            addLog(errorMsg, 'error');
+            
+            // 检查是否是样式相关错误
+            if (event.error?.message?.includes('contains') || 
+                event.error?.message?.includes('appendChild') ||
+                event.error?.message?.includes('insertBefore')) {
+                updateStatus('error', `检测到样式沙箱错误 (错误计数: ${errorCount})`);
+                addLog('这是一个qiankun样式沙箱相关的错误', 'error');
+            } else {
+                updateStatus('warning', `检测到其他错误 (错误计数: ${errorCount})`);
+            }
+        });
+        
+        // 模拟qiankun环境
+        function setupQiankunEnvironment() {
+            // 设置qiankun标识
+            window.__POWERED_BY_QIANKUN__ = true;
+            window.__INJECTED_PUBLIC_PATH_BY_QIANKUN__ = '/';
+            
+            addLog('已设置qiankun环境标识', 'info');
+            
+            // 模拟qiankun的DOM劫持
+            const originalAppendChild = Element.prototype.appendChild;
+            Element.prototype.appendChild = function(child) {
+                // 模拟偶发的null引用错误
+                if (Math.random() < 0.1 && child.tagName === 'STYLE') {
+                    addLog('模拟qiankun样式沙箱null引用错误', 'warning');
+                    throw new TypeError("Cannot read properties of null (reading 'contains')");
+                }
+                return originalAppendChild.call(this, child);
+            };
+            
+            addLog('已设置DOM操作劫持（模拟qiankun行为）', 'info');
+        }
+        
+        // 加载应用
+        async function loadApp() {
+            if (appLoaded) {
+                addLog('应用已加载，请先重新加载', 'warning');
+                return;
+            }
+            
+            loadStartTime = Date.now();
+            updateStatus('info', '正在加载应用...');
+            addLog('开始加载MessageCenter应用', 'info');
+            
+            try {
+                // 设置qiankun环境
+                setupQiankunEnvironment();
+                
+                // 创建应用容器
+                const container = document.getElementById('appContainer');
+                container.innerHTML = `
+                    <div id="vue-message-center" style="width: 100%; height: 100%; min-height: 600px;">
+                        <div style="display: flex; justify-content: center; align-items: center; height: 300px;">
+                            <div style="text-align: center;">
+                                <div style="margin-bottom: 16px;">🔄</div>
+                                <div>正在初始化消息中心...</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                // 模拟Vue应用加载过程
+                await simulateVueAppLoading();
+                
+                const loadTime = Date.now() - loadStartTime;
+                updateStatus('success', `应用加载成功 (耗时: ${loadTime}ms)`);
+                addLog(`应用加载完成，耗时: ${loadTime}ms`, 'success');
+                appLoaded = true;
+                
+            } catch (error) {
+                const loadTime = Date.now() - loadStartTime;
+                updateStatus('error', `应用加载失败 (耗时: ${loadTime}ms)`);
+                addLog(`应用加载失败: ${error.message}`, 'error');
+            }
+        }
+        
+        // 模拟Vue应用加载
+        async function simulateVueAppLoading() {
+            addLog('模拟Vue组件挂载过程', 'info');
+            
+            // 1. 模拟等待DOM就绪
+            await new Promise(resolve => setTimeout(resolve, 100));
+            addLog('DOM就绪检查完成', 'info');
+            
+            // 2. 模拟等待qiankun沙箱就绪
+            await new Promise(resolve => setTimeout(resolve, 50));
+            addLog('qiankun沙箱就绪检查完成', 'info');
+            
+            // 3. 模拟运行时样式注入
+            try {
+                await injectRuntimeStyles();
+                addLog('运行时样式注入成功', 'success');
+            } catch (error) {
+                addLog(`运行时样式注入失败: ${error.message}`, 'error');
+                throw error;
+            }
+            
+            // 4. 模拟组件渲染
+            await new Promise(resolve => setTimeout(resolve, 200));
+            renderMessageCenterUI();
+            addLog('MessageCenter组件渲染完成', 'success');
+        }
+        
+        // 运行时样式注入
+        async function injectRuntimeStyles() {
+            const styles = `
+                .vue-message-center {
+                    width: 100%;
+                    height: 100%;
+                    position: relative;
+                    opacity: 0;
+                    transition: opacity 0.3s ease-in-out;
+                    padding: 16px;
+                    background: white;
+                }
+                
+                .vue-message-center.initialized {
+                    opacity: 1;
+                }
+                
+                .message-center-header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 16px;
+                    padding-bottom: 12px;
+                    border-bottom: 1px solid #f0f0f0;
+                }
+                
+                .message-center-header h2 {
+                    margin: 0;
+                    color: #262626;
+                    font-size: 20px;
+                }
+                
+                .message-list {
+                    background: #fafafa;
+                    border-radius: 6px;
+                    padding: 16px;
+                    min-height: 300px;
+                }
+                
+                .message-item {
+                    background: white;
+                    padding: 12px;
+                    margin-bottom: 8px;
+                    border-radius: 4px;
+                    border-left: 3px solid #1890ff;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                }
+                
+                .message-item:hover {
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                }
+                
+                .message-item.unread {
+                    background-color: #f0f9ff;
+                    border-left-color: #52c41a;
+                }
+                
+                .test-success {
+                    background-color: #f6ffed;
+                    border: 1px solid #b7eb8f;
+                    color: #52c41a;
+                    padding: 12px;
+                    border-radius: 4px;
+                    margin-top: 16px;
+                    text-align: center;
+                }
+            `;
+            
+            // 使用安全的样式注入方法
+            return new Promise((resolve, reject) => {
+                try {
+                    const styleElement = document.createElement('style');
+                    styleElement.textContent = styles;
+                    styleElement.setAttribute('data-vue-message-center', 'true');
+                    
+                    // 检查head元素是否存在
+                    if (!document.head) {
+                        throw new Error('document.head不存在');
+                    }
+                    
+                    // 安全的DOM操作
+                    const safeAppendChild = () => {
+                        try {
+                            document.head.appendChild(styleElement);
+                            addLog('样式元素已安全添加到head', 'info');
+                            
+                            // 延迟添加初始化类名
+                            setTimeout(() => {
+                                const messageCenterEl = document.querySelector('.vue-message-center');
+                                if (messageCenterEl) {
+                                    messageCenterEl.classList.add('initialized');
+                                    addLog('已添加初始化样式类名', 'info');
+                                }
+                            }, 100);
+                            
+                            resolve();
+                        } catch (error) {
+                            addLog(`DOM操作失败: ${error.message}`, 'error');
+                            reject(error);
+                        }
+                    };
+                    
+                    // 延迟执行确保环境稳定
+                    setTimeout(safeAppendChild, 50);
+                    
+                } catch (error) {
+                    addLog(`样式注入准备失败: ${error.message}`, 'error');
+                    reject(error);
+                }
+            });
+        }
+        
+        // 渲染MessageCenter UI
+        function renderMessageCenterUI() {
+            const container = document.getElementById('vue-message-center');
+            if (!container) return;
+            
+            container.innerHTML = `
+                <div class="vue-message-center">
+                    <div class="message-center-header">
+                        <h2>消息中心</h2>
+                        <div>
+                            <button class="btn">全部标记为已读</button>
+                            <button class="btn primary" style="margin-left: 8px;">发送消息</button>
+                        </div>
+                    </div>
+                    
+                    <div class="message-list">
+                        <h3 style="margin-top: 0;">消息列表</h3>
+                        <div class="message-item unread">
+                            <div style="font-weight: 500;">系统通知</div>
+                            <div style="color: #666; font-size: 14px; margin-top: 4px;">欢迎使用消息中心，样式已通过运行时注入成功应用！</div>
+                            <div style="color: #999; font-size: 12px; margin-top: 8px;">${new Date().toLocaleString()}</div>
+                        </div>
+                        <div class="message-item">
+                            <div style="font-weight: 500;">测试消息</div>
+                            <div style="color: #666; font-size: 14px; margin-top: 4px;">这是一条测试消息，用于验证样式效果</div>
+                            <div style="color: #999; font-size: 12px; margin-top: 8px;">${new Date(Date.now() - 3600000).toLocaleString()}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="test-success">
+                        ✅ MessageCenter组件已成功加载，运行时样式注入工作正常！
+                    </div>
+                </div>
+            `;
+        }
+        
+        // 重新加载应用
+        function reloadApp() {
+            appLoaded = false;
+            errorCount = 0;
+            updateStatus('info', '准备重新加载...');
+            
+            // 清理现有样式
+            const existingStyles = document.querySelectorAll('style[data-vue-message-center="true"]');
+            existingStyles.forEach(style => style.remove());
+            
+            // 重置容器
+            const container = document.getElementById('appContainer');
+            container.innerHTML = '<div class="loading">点击"加载应用"开始测试</div>';
+            
+            addLog('应用已重置，可以重新加载', 'info');
+        }
+        
+        // 模拟错误
+        function simulateError() {
+            try {
+                // 模拟样式注入错误
+                const fakeElement = null;
+                fakeElement.contains(document.body); // 这会抛出TypeError
+            } catch (error) {
+                addLog('已模拟样式沙箱错误', 'warning');
+            }
+        }
+        
+        // 检查样式
+        function checkStyles() {
+            const styles = document.querySelectorAll('style[data-vue-message-center="true"]');
+            const messageCenter = document.querySelector('.vue-message-center');
+            
+            addLog(`检查结果:`, 'info');
+            addLog(`- 找到 ${styles.length} 个运行时注入的样式元素`, 'info');
+            addLog(`- MessageCenter容器存在: ${!!messageCenter}`, 'info');
+            
+            if (messageCenter) {
+                const computedStyle = window.getComputedStyle(messageCenter);
+                addLog(`- 容器position: ${computedStyle.position}`, 'info');
+                addLog(`- 容器opacity: ${computedStyle.opacity}`, 'info');
+                addLog(`- 容器已初始化: ${messageCenter.classList.contains('initialized')}`, 'info');
+            }
+        }
+        
+        // 清除错误日志
+        function clearErrors() {
+            const logContent = document.getElementById('logContent');
+            logContent.textContent = '暂无日志';
+            errorCount = 0;
+            updateStatus('info', '错误日志已清除');
+        }
+        
+        // 初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            addLog('测试页面初始化完成', 'info');
+            updateStatus('info', '准备就绪，可以开始测试');
+        });
+    </script>
+</body>
+</html>

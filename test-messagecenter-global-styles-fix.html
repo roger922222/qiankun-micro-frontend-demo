@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MessageCenter 全局样式修复测试</title>
+    <style>
+        body { margin: 0; font-family: Arial, sans-serif; }
+        .test-container { padding: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .status { padding: 5px 10px; border-radius: 3px; margin: 5px 0; }
+        .status.success { background: #d4edda; color: #155724; }
+        .status.error { background: #f8d7da; color: #721c24; }
+        .status.info { background: #d1ecf1; color: #0c5460; }
+        iframe { width: 100%; height: 600px; border: 1px solid #ccc; margin-top: 10px; }
+        .log-container { max-height: 200px; overflow-y: auto; background: #f8f9fa; padding: 10px; border-radius: 3px; font-family: monospace; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>MessageCenter 全局样式修复测试</h1>
+        
+        <div class="test-section">
+            <h2>修复方案说明</h2>
+            <div class="status info">
+                <strong>方案一：全局样式导入（已实施）</strong><br>
+                ✅ 从所有组件中移除 CSS 导入语句<br>
+                ✅ 在 main.ts 中统一导入所有样式文件<br>
+                ✅ 确保样式在应用启动时就全部加载
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>修复内容</h2>
+            <div class="status success">
+                <strong>已修复的文件：</strong><br>
+                • MessageCenter.vue - 移除样式导入<br>
+                • MessagePush.vue - 移除样式导入<br>
+                • Notifications.vue - 移除样式导入<br>
+                • main.ts - 添加全局样式导入
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>服务状态检查</h2>
+            <div id="serviceStatus">检查中...</div>
+        </div>
+
+        <div class="test-section">
+            <h2>主应用测试</h2>
+            <button onclick="loadMainApp()">加载主应用</button>
+            <div id="mainAppFrame"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>错误日志监控</h2>
+            <div class="log-container" id="errorLog">等待错误日志...</div>
+        </div>
+
+        <div class="test-section">
+            <h2>测试步骤</h2>
+            <ol>
+                <li>确认主应用和子应用都已启动</li>
+                <li>点击"加载主应用"按钮</li>
+                <li>在主应用中导航到消息中心</li>
+                <li>观察是否还有样式相关错误</li>
+                <li>检查页面是否正常显示</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        // 错误监控
+        const errorLog = document.getElementById('errorLog');
+        const originalConsoleError = console.error;
+        
+        console.error = function(...args) {
+            originalConsoleError.apply(console, args);
+            const errorMsg = args.join(' ');
+            const timestamp = new Date().toLocaleTimeString();
+            errorLog.innerHTML += `<div>[${timestamp}] ERROR: ${errorMsg}</div>`;
+            errorLog.scrollTop = errorLog.scrollHeight;
+        };
+
+        window.addEventListener('error', function(event) {
+            const timestamp = new Date().toLocaleTimeString();
+            errorLog.innerHTML += `<div>[${timestamp}] WINDOW ERROR: ${event.message} at ${event.filename}:${event.lineno}</div>`;
+            errorLog.scrollTop = errorLog.scrollHeight;
+        });
+
+        // 检查服务状态
+        async function checkServices() {
+            const statusDiv = document.getElementById('serviceStatus');
+            let status = '';
+            
+            try {
+                // 检查主应用
+                const mainResponse = await fetch('http://localhost:3001/', { mode: 'no-cors' });
+                status += '<div class="status success">✅ 主应用 (localhost:3001) - 运行中</div>';
+            } catch (e) {
+                status += '<div class="status error">❌ 主应用 (localhost:3001) - 未运行</div>';
+            }
+            
+            try {
+                // 检查 vue-app-1
+                const vueResponse = await fetch('http://localhost:3007/', { mode: 'no-cors' });
+                status += '<div class="status success">✅ Vue App 1 (localhost:3007) - 运行中</div>';
+            } catch (e) {
+                status += '<div class="status error">❌ Vue App 1 (localhost:3007) - 未运行</div>';
+            }
+            
+            statusDiv.innerHTML = status;
+        }
+
+        function loadMainApp() {
+            const frameContainer = document.getElementById('mainAppFrame');
+            frameContainer.innerHTML = '<iframe src="http://localhost:3001/" title="主应用"></iframe>';
+            
+            // 监控 iframe 中的错误
+            const iframe = frameContainer.querySelector('iframe');
+            iframe.onload = function() {
+                try {
+                    const iframeWindow = iframe.contentWindow;
+                    iframeWindow.addEventListener('error', function(event) {
+                        const timestamp = new Date().toLocaleTimeString();
+                        errorLog.innerHTML += `<div>[${timestamp}] IFRAME ERROR: ${event.message}</div>`;
+                        errorLog.scrollTop = errorLog.scrollHeight;
+                    });
+                } catch (e) {
+                    console.log('无法访问 iframe 内容（跨域限制）');
+                }
+            };
+        }
+
+        // 页面加载时检查服务
+        checkServices();
+        
+        // 每30秒检查一次服务状态
+        setInterval(checkServices, 30000);
+    </script>
+</body>
+</html>

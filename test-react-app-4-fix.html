@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>React App 4 修复验证测试</title>
+    <script src="https://unpkg.com/qiankun@2.10.16/dist/index.umd.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .status {
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+        }
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+            background: #f8f9fa;
+        }
+        .status-success { border-left: 4px solid #52c41a; }
+        .status-error { border-left: 4px solid #ff4d4f; }
+        .status-warning { border-left: 4px solid #faad14; }
+        .app-container {
+            min-height: 600px;
+            padding: 20px;
+        }
+        .controls {
+            padding: 20px;
+            background: #fafafa;
+            border-top: 1px solid #eee;
+        }
+        .btn {
+            background: #1890ff;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        .btn:hover { background: #40a9ff; }
+        .btn:disabled { background: #d9d9d9; cursor: not-allowed; }
+        .error-log {
+            background: #fff2f0;
+            border: 1px solid #ffccc7;
+            border-radius: 4px;
+            padding: 10px;
+            margin-top: 10px;
+            font-family: monospace;
+            font-size: 12px;
+            color: #a8071a;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .success-log {
+            background: #f6ffed;
+            border: 1px solid #b7eb8f;
+            border-radius: 4px;
+            padding: 10px;
+            margin-top: 10px;
+            font-family: monospace;
+            font-size: 12px;
+            color: #389e0d;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>React App 4 HTMLElement 构造函数错误修复验证</h1>
+            <p>测试微前端子应用在修复 process 对象定义后的运行状态</p>
+        </div>
+        
+        <div class="status">
+            <h3>系统状态检查</h3>
+            <div id="status-list"></div>
+        </div>
+
+        <div class="controls">
+            <button class="btn" onclick="loadApp()">加载 React App 4</button>
+            <button class="btn" onclick="unloadApp()">卸载应用</button>
+            <button class="btn" onclick="checkErrors()">检查错误</button>
+            <button class="btn" onclick="clearLogs()">清除日志</button>
+        </div>
+
+        <div id="react-app-4" class="app-container">
+            <div style="text-align: center; color: #999; padding: 50px;">
+                点击"加载 React App 4"按钮开始测试
+            </div>
+        </div>
+
+        <div id="error-logs"></div>
+    </div>
+
+    <script>
+        let appLoaded = false;
+        const errors = [];
+        const logs = [];
+
+        // 捕获所有错误
+        window.addEventListener('error', (event) => {
+            const error = {
+                message: event.message,
+                filename: event.filename,
+                lineno: event.lineno,
+                colno: event.colno,
+                stack: event.error?.stack,
+                time: new Date().toLocaleTimeString()
+            };
+            errors.push(error);
+            updateErrorLogs();
+            updateStatus();
+        });
+
+        // 捕获 Promise 错误
+        window.addEventListener('unhandledrejection', (event) => {
+            const error = {
+                message: event.reason?.message || String(event.reason),
+                stack: event.reason?.stack,
+                time: new Date().toLocaleTimeString(),
+                type: 'Promise rejection'
+            };
+            errors.push(error);
+            updateErrorLogs();
+            updateStatus();
+        });
+
+        function updateStatus() {
+            const statusList = document.getElementById('status-list');
+            const hasProcessError = errors.some(e => 
+                e.message?.includes('process is not defined') || 
+                e.message?.includes('process.env')
+            );
+            const hasHTMLElementError = errors.some(e => 
+                e.message?.includes('HTMLElement') || 
+                e.message?.includes('Illegal constructor')
+            );
+            const hasOtherErrors = errors.some(e => 
+                !e.message?.includes('process') && 
+                !e.message?.includes('HTMLElement')
+            );
+
+            statusList.innerHTML = `
+                <div class="status-item ${hasProcessError ? 'status-error' : 'status-success'}">
+                    <span>Process 对象定义</span>
+                    <span>${hasProcessError ? '❌ 存在 process 相关错误' : '✅ 正常'}</span>
+                </div>
+                <div class="status-item ${hasHTMLElementError ? 'status-error' : 'status-success'}">
+                    <span>HTMLElement 构造函数</span>
+                    <span>${hasHTMLElementError ? '❌ 存在构造函数错误' : '✅ 正常'}</span>
+                </div>
+                <div class="status-item ${appLoaded ? 'status-success' : 'status-warning'}">
+                    <span>应用加载状态</span>
+                    <span>${appLoaded ? '✅ 已加载' : '⚠️ 未加载'}</span>
+                </div>
+                <div class="status-item ${hasOtherErrors ? 'status-warning' : 'status-success'}">
+                    <span>其他错误</span>
+                    <span>${hasOtherErrors ? '⚠️ 存在其他错误' : '✅ 无其他错误'}</span>
+                </div>
+                <div class="status-item status-success">
+                    <span>总错误数量</span>
+                    <span>${errors.length} 个</span>
+                </div>
+            `;
+        }
+
+        function updateErrorLogs() {
+            const errorLogs = document.getElementById('error-logs');
+            if (errors.length === 0) {
+                errorLogs.innerHTML = '<div class="success-log">✅ 暂无错误，修复成功！</div>';
+                return;
+            }
+
+            const errorHtml = errors.map(error => `
+                <div style="margin-bottom: 10px; padding: 8px; border-left: 3px solid #ff4d4f; background: #fff1f0;">
+                    <strong>[${error.time}] ${error.type || 'Error'}</strong><br>
+                    <div style="margin: 5px 0;">${error.message}</div>
+                    ${error.filename ? `<div style="font-size: 11px; color: #666;">文件: ${error.filename}:${error.lineno}:${error.colno}</div>` : ''}
+                    ${error.stack ? `<details style="margin-top: 5px;"><summary>堆栈跟踪</summary><pre style="font-size: 10px; margin: 5px 0;">${error.stack}</pre></details>` : ''}
+                </div>
+            `).join('');
+
+            errorLogs.innerHTML = `<div class="error-log">${errorHtml}</div>`;
+        }
+
+        async function loadApp() {
+            try {
+                logs.push(`[${new Date().toLocaleTimeString()}] 开始加载 React App 4...`);
+                
+                // 检查子应用是否可访问
+                const healthCheck = await fetch('http://localhost:3004/').catch(() => null);
+                if (!healthCheck) {
+                    throw new Error('React App 4 开发服务器未运行，请确保在端口 3004 上启动了服务');
+                }
+
+                logs.push(`[${new Date().toLocaleTimeString()}] 子应用服务器检查通过`);
+
+                // 注册子应用
+                const { registerMicroApps, start } = window.qiankun;
+                
+                registerMicroApps([
+                    {
+                        name: 'react-dashboard',
+                        entry: 'http://localhost:3004/',
+                        container: '#react-app-4',
+                        activeRule: () => true,
+                        props: {
+                            routerBase: '/data-dashboard'
+                        }
+                    }
+                ], {
+                    beforeLoad: (app) => {
+                        logs.push(`[${new Date().toLocaleTimeString()}] 开始加载应用: ${app.name}`);
+                        return Promise.resolve();
+                    },
+                    beforeMount: (app) => {
+                        logs.push(`[${new Date().toLocaleTimeString()}] 开始挂载应用: ${app.name}`);
+                        return Promise.resolve();
+                    },
+                    afterMount: (app) => {
+                        logs.push(`[${new Date().toLocaleTimeString()}] 应用挂载完成: ${app.name}`);
+                        appLoaded = true;
+                        updateStatus();
+                        return Promise.resolve();
+                    },
+                    beforeUnmount: (app) => {
+                        logs.push(`[${new Date().toLocaleTimeString()}] 开始卸载应用: ${app.name}`);
+                        return Promise.resolve();
+                    },
+                    afterUnmount: (app) => {
+                        logs.push(`[${new Date().toLocaleTimeString()}] 应用卸载完成: ${app.name}`);
+                        appLoaded = false;
+                        updateStatus();
+                        return Promise.resolve();
+                    }
+                });
+
+                // 启动 qiankun
+                start({
+                    prefetch: false,
+                    sandbox: {
+                        strictStyleIsolation: false,
+                        experimentalStyleIsolation: true
+                    }
+                });
+
+                logs.push(`[${new Date().toLocaleTimeString()}] qiankun 启动完成`);
+                
+                // 等待一段时间让应用完全加载
+                setTimeout(() => {
+                    if (!appLoaded) {
+                        logs.push(`[${new Date().toLocaleTimeString()}] 警告: 应用可能未完全加载`);
+                    }
+                    updateStatus();
+                }, 3000);
+
+            } catch (error) {
+                errors.push({
+                    message: error.message,
+                    stack: error.stack,
+                    time: new Date().toLocaleTimeString(),
+                    type: 'Load Error'
+                });
+                updateErrorLogs();
+                updateStatus();
+            }
+        }
+
+        async function unloadApp() {
+            try {
+                const { unloadMicroApp } = window.qiankun;
+                await unloadMicroApp('react-dashboard');
+                appLoaded = false;
+                logs.push(`[${new Date().toLocaleTimeString()}] 应用卸载成功`);
+                updateStatus();
+            } catch (error) {
+                errors.push({
+                    message: error.message,
+                    stack: error.stack,
+                    time: new Date().toLocaleTimeString(),
+                    type: 'Unload Error'
+                });
+                updateErrorLogs();
+                updateStatus();
+            }
+        }
+
+        function checkErrors() {
+            logs.push(`[${new Date().toLocaleTimeString()}] 执行错误检查...`);
+            
+            // 检查特定的错误类型
+            const processErrors = errors.filter(e => 
+                e.message?.includes('process is not defined') || 
+                e.message?.includes('process.env')
+            );
+            
+            const htmlElementErrors = errors.filter(e => 
+                e.message?.includes('HTMLElement') || 
+                e.message?.includes('Illegal constructor')
+            );
+
+            if (processErrors.length === 0 && htmlElementErrors.length === 0) {
+                alert('✅ 检查完成！未发现 process 或 HTMLElement 相关错误，修复成功！');
+            } else {
+                alert(`❌ 发现错误：\n- Process 错误: ${processErrors.length} 个\n- HTMLElement 错误: ${htmlElementErrors.length} 个\n请查看错误日志了解详情。`);
+            }
+            
+            updateStatus();
+        }
+
+        function clearLogs() {
+            errors.length = 0;
+            logs.length = 0;
+            updateErrorLogs();
+            updateStatus();
+        }
+
+        // 初始化状态
+        updateStatus();
+        updateErrorLogs();
+    </script>
+</body>
+</html>

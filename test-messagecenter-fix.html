@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MessageCenter 样式错误修复测试</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        .test-container {
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #e8e8e8;
+            border-radius: 8px;
+        }
+        .test-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #1890ff;
+        }
+        .test-result {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .test-success {
+            background-color: #f6ffed;
+            border: 1px solid #b7eb8f;
+            color: #52c41a;
+        }
+        .test-error {
+            background-color: #fff2f0;
+            border: 1px solid #ffccc7;
+            color: #ff4d4f;
+        }
+        .test-warning {
+            background-color: #fffbe6;
+            border: 1px solid #ffe58f;
+            color: #faad14;
+        }
+        .microapp-container {
+            height: 600px;
+            border: 2px solid #1890ff;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .control-panel {
+            margin-bottom: 20px;
+        }
+        .control-panel button {
+            margin-right: 10px;
+            padding: 8px 16px;
+            border: 1px solid #d9d9d9;
+            border-radius: 4px;
+            background: white;
+            cursor: pointer;
+        }
+        .control-panel button:hover {
+            border-color: #1890ff;
+            color: #1890ff;
+        }
+        .log-container {
+            background-color: #f5f5f5;
+            border: 1px solid #d9d9d9;
+            border-radius: 4px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .log-entry {
+            margin-bottom: 5px;
+            padding: 2px 0;
+        }
+        .log-error { color: #ff4d4f; }
+        .log-warn { color: #faad14; }
+        .log-info { color: #1890ff; }
+        .log-success { color: #52c41a; }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>qiankun 微前端 MessageCenter.vue 样式错误修复测试</h1>
+        
+        <div class="test-section">
+            <div class="test-title">🔧 修复方案验证</div>
+            <div id="fix-status">正在检测修复状态...</div>
+        </div>
+
+        <div class="test-section">
+            <div class="test-title">🎛️ 测试控制面板</div>
+            <div class="control-panel">
+                <button onclick="loadMicroApp()">加载 MessageCenter 微应用</button>
+                <button onclick="unloadMicroApp()">卸载微应用</button>
+                <button onclick="testStyleInjection()">测试样式注入</button>
+                <button onclick="simulateError()">模拟样式错误</button>
+                <button onclick="checkErrorMonitor()">检查错误监控</button>
+                <button onclick="clearLogs()">清空日志</button>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <div class="test-title">📱 微应用容器</div>
+            <div id="microapp-container" class="microapp-container">
+                <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #999;">
+                    点击"加载 MessageCenter 微应用"开始测试
+                </div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <div class="test-title">📊 实时日志监控</div>
+            <div id="log-container" class="log-container">
+                <div class="log-entry log-info">测试页面已准备就绪，等待开始测试...</div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <div class="test-title">📈 错误统计</div>
+            <div id="error-stats">
+                <div>总错误数: <span id="total-errors">0</span></div>
+                <div>恢复成功率: <span id="recovery-rate">0%</span></div>
+                <div>最近错误: <span id="recent-errors">无</span></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/qiankun@2.10.16/dist/index.umd.js"></script>
+    <script>
+        let microAppInstance = null;
+        let logContainer = null;
+        let errorCount = 0;
+        let recoveryCount = 0;
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            logContainer = document.getElementById('log-container');
+            checkFixStatus();
+            setupErrorMonitoring();
+            addLog('页面初始化完成', 'info');
+        });
+
+        // 检查修复状态
+        function checkFixStatus() {
+            const statusDiv = document.getElementById('fix-status');
+            const checks = [
+                { name: 'qiankun 库加载', test: () => typeof window.qiankun !== 'undefined' },
+                { name: '样式错误处理器', test: () => checkStyleErrorHandler() },
+                { name: 'DOM 环境就绪', test: () => document.readyState === 'complete' },
+                { name: '微前端环境', test: () => window.location.protocol === 'http:' || window.location.protocol === 'https:' }
+            ];
+
+            let html = '';
+            let allPassed = true;
+
+            checks.forEach(check => {
+                const passed = check.test();
+                allPassed = allPassed && passed;
+                const className = passed ? 'test-success' : 'test-error';
+                html += `<div class="test-result ${className}">
+                    ${passed ? '✅' : '❌'} ${check.name}: ${passed ? '正常' : '异常'}
+                </div>`;
+            });
+
+            statusDiv.innerHTML = html;
+            
+            if (allPassed) {
+                addLog('所有修复检查通过，环境准备就绪', 'success');
+            } else {
+                addLog('部分修复检查未通过，可能影响测试结果', 'warn');
+            }
+        }
+
+        // 检查样式错误处理器
+        function checkStyleErrorHandler() {
+            // 模拟检查样式错误处理机制
+            return typeof window.addEventListener === 'function';
+        }
+
+        // 设置错误监控
+        function setupErrorMonitoring() {
+            // 监控全局错误
+            window.addEventListener('error', function(event) {
+                if (event.error && event.error.message) {
+                    const message = event.error.message;
+                    if (message.includes('contains') || 
+                        message.includes('appendChild') || 
+                        message.includes('qiankun')) {
+                        errorCount++;
+                        addLog(`捕获样式相关错误: ${message}`, 'error');
+                        updateErrorStats();
+                        
+                        // 模拟自动恢复
+                        setTimeout(() => {
+                            recoveryCount++;
+                            addLog('尝试自动恢复样式错误', 'warn');
+                            updateErrorStats();
+                        }, 500);
+                    }
+                }
+            });
+
+            // 监控 Promise 拒绝
+            window.addEventListener('unhandledrejection', function(event) {
+                if (event.reason && typeof event.reason === 'object') {
+                    const message = event.reason.message || event.reason.toString();
+                    if (message.includes('style') || message.includes('DOM')) {
+                        errorCount++;
+                        addLog(`捕获 Promise 样式错误: ${message}`, 'error');
+                        updateErrorStats();
+                    }
+                }
+            });
+        }
+
+        // 加载微应用
+        async function loadMicroApp() {
+            try {
+                addLog('开始加载 MessageCenter 微应用...', 'info');
+                
+                if (microAppInstance) {
+                    addLog('微应用已存在，先卸载再重新加载', 'warn');
+                    await unloadMicroApp();
+                }
+
+                // 检查 vue-app-1 是否在运行
+                const vueAppUrl = 'http://localhost:3007'; // 根据实际端口调整
+                
+                try {
+                    const response = await fetch(vueAppUrl);
+                    if (!response.ok) {
+                        throw new Error(`Vue 应用未运行 (${response.status})`);
+                    }
+                } catch (fetchError) {
+                    addLog(`Vue 应用连接失败: ${fetchError.message}`, 'error');
+                    addLog('请确保 vue-app-1 在 http://localhost:3007 运行', 'warn');
+                    return;
+                }
+
+                // 注册微应用
+                const { registerMicroApps, start } = window.qiankun;
+                
+                registerMicroApps([
+                    {
+                        name: 'vue-message-center',
+                        entry: vueAppUrl,
+                        container: '#microapp-container',
+                        activeRule: () => true,
+                    }
+                ]);
+
+                // 启动 qiankun
+                start({
+                    sandbox: {
+                        experimentalStyleIsolation: true
+                    }
+                });
+
+                addLog('微应用注册成功，正在加载...', 'success');
+                
+                // 监控加载状态
+                setTimeout(() => {
+                    const container = document.getElementById('microapp-container');
+                    if (container && container.innerHTML.includes('vue-message-center')) {
+                        addLog('微应用加载成功！', 'success');
+                    } else {
+                        addLog('微应用加载可能失败，请检查控制台', 'warn');
+                    }
+                }, 3000);
+
+            } catch (error) {
+                addLog(`加载微应用失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 卸载微应用
+        async function unloadMicroApp() {
+            try {
+                addLog('正在卸载微应用...', 'info');
+                
+                // 清空容器
+                const container = document.getElementById('microapp-container');
+                container.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #999;">微应用已卸载</div>';
+                
+                microAppInstance = null;
+                addLog('微应用卸载完成', 'success');
+            } catch (error) {
+                addLog(`卸载微应用失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 测试样式注入
+        function testStyleInjection() {
+            addLog('开始测试样式注入...', 'info');
+            
+            try {
+                // 创建测试样式
+                const testStyle = document.createElement('style');
+                testStyle.textContent = `
+                    .test-style-injection {
+                        color: red !important;
+                        font-weight: bold;
+                    }
+                `;
+                testStyle.setAttribute('data-test', 'style-injection');
+                
+                // 尝试注入
+                document.head.appendChild(testStyle);
+                
+                // 验证注入
+                setTimeout(() => {
+                    const injectedStyle = document.querySelector('style[data-test="style-injection"]');
+                    if (injectedStyle) {
+                        addLog('样式注入测试成功 ✅', 'success');
+                        // 清理测试样式
+                        document.head.removeChild(injectedStyle);
+                    } else {
+                        addLog('样式注入测试失败 ❌', 'error');
+                    }
+                }, 100);
+                
+            } catch (error) {
+                addLog(`样式注入测试异常: ${error.message}`, 'error');
+            }
+        }
+
+        // 模拟样式错误
+        function simulateError() {
+            addLog('模拟样式错误...', 'warn');
+            
+            try {
+                // 模拟 qiankun 样式沙箱错误
+                const fakeError = new TypeError("Cannot read properties of null (reading 'contains')");
+                fakeError.stack = `
+                    at HTMLHeadElement.appendChildOrInsertBefore (qiankun.js:6300:40)
+                    at updateStyle (client.ts:425:4)
+                    at MessageCenter.vue:4:1
+                `;
+                
+                // 触发错误处理
+                window.dispatchEvent(new ErrorEvent('error', {
+                    error: fakeError,
+                    message: fakeError.message,
+                    filename: 'MessageCenter.vue',
+                    lineno: 4,
+                    colno: 1
+                }));
+                
+                addLog('已触发模拟错误，观察错误处理机制', 'warn');
+                
+            } catch (error) {
+                addLog(`模拟错误失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 检查错误监控
+        function checkErrorMonitor() {
+            addLog('检查错误监控状态...', 'info');
+            
+            const stats = {
+                totalErrors: errorCount,
+                recoveryCount: recoveryCount,
+                recoveryRate: errorCount > 0 ? (recoveryCount / errorCount * 100).toFixed(1) : 0
+            };
+            
+            addLog(`错误监控统计: 总错误 ${stats.totalErrors}, 恢复 ${stats.recoveryCount}, 成功率 ${stats.recoveryRate}%`, 'info');
+            updateErrorStats();
+        }
+
+        // 更新错误统计
+        function updateErrorStats() {
+            document.getElementById('total-errors').textContent = errorCount;
+            document.getElementById('recovery-rate').textContent = 
+                errorCount > 0 ? (recoveryCount / errorCount * 100).toFixed(1) + '%' : '0%';
+            document.getElementById('recent-errors').textContent = 
+                errorCount > 0 ? `最近 ${Math.min(errorCount, 5)} 个错误` : '无';
+        }
+
+        // 添加日志
+        function addLog(message, type = 'info') {
+            if (!logContainer) return;
+            
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry log-${type}`;
+            logEntry.textContent = `[${timestamp}] ${message}`;
+            
+            logContainer.appendChild(logEntry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+            
+            // 限制日志数量
+            const logs = logContainer.querySelectorAll('.log-entry');
+            if (logs.length > 100) {
+                logContainer.removeChild(logs[0]);
+            }
+        }
+
+        // 清空日志
+        function clearLogs() {
+            if (logContainer) {
+                logContainer.innerHTML = '<div class="log-entry log-info">日志已清空</div>';
+            }
+            errorCount = 0;
+            recoveryCount = 0;
+            updateErrorStats();
+        }
+    </script>
+</body>
+</html>

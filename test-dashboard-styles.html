@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard 样式修复测试</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            margin: 20px;
+            background: #f0f2f5;
+        }
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 24px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        .test-section {
+            margin-bottom: 32px;
+            padding: 20px;
+            border: 1px solid #e8e8e8;
+            border-radius: 8px;
+        }
+        .test-title {
+            color: #1890ff;
+            margin-bottom: 16px;
+            font-size: 18px;
+            font-weight: 600;
+        }
+        .test-description {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 12px;
+        }
+        .test-link {
+            display: inline-block;
+            padding: 8px 16px;
+            background: #1890ff;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            margin-right: 12px;
+            margin-top: 8px;
+        }
+        .test-link:hover {
+            background: #40a9ff;
+            color: white;
+        }
+        .status {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .status.success {
+            background: #f6ffed;
+            color: #52c41a;
+            border: 1px solid #b7eb8f;
+        }
+        .feature-list {
+            list-style: none;
+            padding: 0;
+        }
+        .feature-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .feature-list li:before {
+            content: "✓";
+            color: #52c41a;
+            font-weight: bold;
+            margin-right: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>Dashboard 页面样式修复测试</h1>
+        <p style="color: #666; margin-bottom: 32px;">
+            本页面用于测试 Dashboard 页面的样式修复效果。请访问以下链接查看修复后的页面。
+        </p>
+
+        <div class="test-section">
+            <div class="test-title">🎯 修复内容</div>
+            <ul class="feature-list">
+                <li>优化了统计卡片的布局和间距</li>
+                <li>改进了响应式设计，支持移动端显示</li>
+                <li>增强了卡片的视觉效果和阴影</li>
+                <li>优化了颜色搭配和字体大小</li>
+                <li>改进了表格和时间轴的样式</li>
+                <li>添加了悬停效果和动画</li>
+                <li>优化了空状态的显示</li>
+                <li>改进了整体的视觉层次</li>
+            </ul>
+        </div>
+
+        <div class="test-section">
+            <div class="test-title">🔗 测试链接</div>
+            <div class="test-description">
+                点击以下链接访问修复后的 Dashboard 页面：
+            </div>
+            <a href="http://localhost:3000/product-management/dashboard" class="test-link" target="_blank">
+                访问 Dashboard 页面
+            </a>
+            <a href="http://localhost:3013/dashboard" class="test-link" target="_blank">
+                直接访问 React App 2
+            </a>
+            <div style="margin-top: 16px;">
+                <span class="status success">状态：样式修复完成</span>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <div class="test-title">📱 响应式测试</div>
+            <div class="test-description">
+                请在不同屏幕尺寸下测试页面显示效果：
+            </div>
+            <ul>
+                <li><strong>桌面端</strong> (≥1200px)：4列网格布局</li>
+                <li><strong>平板端</strong> (768px-1199px)：2列网格布局</li>
+                <li><strong>移动端</strong> (≤767px)：单列布局</li>
+            </ul>
+        </div>
+
+        <div class="test-section">
+            <div class="test-title">🎨 样式特性</div>
+            <div class="test-description">
+                修复后的页面包含以下视觉改进：
+            </div>
+            <ul>
+                <li><strong>现代化卡片设计</strong>：圆角、阴影、悬停效果</li>
+                <li><strong>优化的色彩系统</strong>：统一的主题色彩</li>
+                <li><strong>改进的排版</strong>：更好的字体大小和行高</li>
+                <li><strong>流畅的动画</strong>：渐入效果和过渡动画</li>
+                <li><strong>清晰的层次</strong>：更好的信息组织</li>
+            </ul>
+        </div>
+
+        <div class="test-section">
+            <div class="test-title">🔧 技术实现</div>
+            <div class="test-description">
+                样式修复采用了以下技术方案：
+            </div>
+            <ul>
+                <li>创建专用的 dashboard.css 样式文件</li>
+                <li>使用 CSS 类名进行样式组织</li>
+                <li>采用响应式网格布局</li>
+                <li>优化 Ant Design 组件样式</li>
+                <li>添加 CSS 动画和过渡效果</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // 检查链接是否可访问
+        function checkLinks() {
+            const links = document.querySelectorAll('.test-link');
+            links.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    console.log('访问链接:', this.href);
+                });
+            });
+        }
+
+        // 页面加载完成后执行
+        document.addEventListener('DOMContentLoaded', checkLinks);
+    </script>
+</body>
+</html>

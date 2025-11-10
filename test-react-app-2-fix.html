@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>测试 React App 2 ES模块修复</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .status { padding: 10px; margin: 10px 0; border-radius: 4px; }
+        .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .info { background-color: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        #micro-app-container { 
+            border: 2px solid #007bff; 
+            padding: 20px; 
+            margin: 20px 0; 
+            min-height: 400px;
+            background-color: #f8f9fa;
+        }
+        .test-button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .test-button:hover {
+            background-color: #0056b3;
+        }
+        .log {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>React App 2 ES模块兼容性测试</h1>
+        
+        <div class="info">
+            <h3>测试目标</h3>
+            <p>验证react-app-2的Vite配置修复是否解决了ES模块兼容性问题</p>
+            <ul>
+                <li>✅ 添加了@vitejs/plugin-legacy插件</li>
+                <li>✅ 添加了vite-plugin-legacy-qiankun插件</li>
+                <li>✅ 配置了正确的UMD格式输出</li>
+                <li>✅ 更新了端口配置为3002</li>
+            </ul>
+        </div>
+
+        <div>
+            <button class="test-button" onclick="testAppAvailability()">测试应用可用性</button>
+            <button class="test-button" onclick="loadMicroApp()">加载微应用</button>
+            <button class="test-button" onclick="clearLogs()">清空日志</button>
+        </div>
+
+        <div id="status" class="status info">
+            准备测试...
+        </div>
+
+        <div id="logs" class="log">
+等待测试开始...
+        </div>
+
+        <div id="micro-app-container">
+            <p>微应用将在此处加载...</p>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/qiankun@2.10.16/dist/index.umd.min.js"></script>
+    <script>
+        let logs = [];
+        
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logMessage = `[${timestamp}] ${message}`;
+            logs.push(logMessage);
+            
+            const logsElement = document.getElementById('logs');
+            logsElement.textContent = logs.join('\n');
+            logsElement.scrollTop = logsElement.scrollHeight;
+            
+            console.log(logMessage);
+        }
+        
+        function updateStatus(message, type = 'info') {
+            const statusElement = document.getElementById('status');
+            statusElement.textContent = message;
+            statusElement.className = `status ${type}`;
+        }
+        
+        function clearLogs() {
+            logs = [];
+            document.getElementById('logs').textContent = '日志已清空...';
+        }
+        
+        async function testAppAvailability() {
+            updateStatus('正在测试应用可用性...', 'info');
+            log('开始测试react-app-2可用性...');
+            
+            try {
+                const response = await fetch('http://localhost:3002/', { method: 'HEAD' });
+                if (response.ok) {
+                    log('✅ react-app-2应用可访问');
+                    updateStatus('应用可用性测试通过', 'success');
+                    
+                    // 测试入口HTML
+                    const htmlResponse = await fetch('http://localhost:3002/');
+                    const htmlText = await htmlResponse.text();
+                    
+                    if (htmlText.includes('legacyQiankun')) {
+                        log('✅ 检测到qiankun兼容性代码');
+                    } else {
+                        log('⚠️ 未检测到qiankun兼容性代码');
+                    }
+                    
+                    if (htmlText.includes('react-product-management')) {
+                        log('✅ 应用名称配置正确');
+                    } else {
+                        log('⚠️ 应用名称配置可能有问题');
+                    }
+                    
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+            } catch (error) {
+                log(`❌ 应用不可访问: ${error.message}`);
+                updateStatus('应用可用性测试失败', 'error');
+            }
+        }
+        
+        async function loadMicroApp() {
+            updateStatus('正在加载微应用...', 'info');
+            log('开始加载react-app-2微应用...');
+            
+            try {
+                // 清空容器
+                const container = document.getElementById('micro-app-container');
+                container.innerHTML = '<p>正在加载微应用...</p>';
+                
+                // 注册微应用
+                const { registerMicroApps, start } = window.qiankun;
+                
+                log('注册微应用配置...');
+                registerMicroApps([
+                    {
+                        name: 'react-product-management',
+                        entry: 'http://localhost:3002',
+                        container: '#micro-app-container',
+                        activeRule: '/product-management',
+                        props: {
+                            routerBase: '/product-management'
+                        }
+                    }
+                ], {
+                    beforeLoad: (app) => {
+                        log(`📦 开始加载应用: ${app.name}`);
+                        return Promise.resolve();
+                    },
+                    beforeMount: (app) => {
+                        log(`🔧 开始挂载应用: ${app.name}`);
+                        return Promise.resolve();
+                    },
+                    afterMount: (app) => {
+                        log(`✅ 应用挂载成功: ${app.name}`);
+                        updateStatus('微应用加载成功！', 'success');
+                        return Promise.resolve();
+                    },
+                    beforeUnmount: (app) => {
+                        log(`🔄 开始卸载应用: ${app.name}`);
+                        return Promise.resolve();
+                    },
+                    afterUnmount: (app) => {
+                        log(`✅ 应用卸载成功: ${app.name}`);
+                        return Promise.resolve();
+                    }
+                });
+                
+                // 启动qiankun
+                log('启动qiankun...');
+                start({
+                    sandbox: {
+                        strictStyleIsolation: false,
+                        experimentalStyleIsolation: true
+                    }
+                });
+                
+                // 手动触发路由匹配
+                log('触发路由匹配...');
+                window.history.pushState({}, '', '/product-management');
+                
+                // 等待一段时间让应用加载
+                setTimeout(() => {
+                    const container = document.getElementById('micro-app-container');
+                    if (container.innerHTML.includes('正在加载')) {
+                        log('⚠️ 应用加载超时，可能存在问题');
+                        updateStatus('应用加载超时', 'error');
+                    }
+                }, 10000);
+                
+            } catch (error) {
+                log(`❌ 加载微应用失败: ${error.message}`);
+                log(`错误堆栈: ${error.stack}`);
+                updateStatus('微应用加载失败', 'error');
+            }
+        }
+        
+        // 页面加载完成后自动测试可用性
+        window.addEventListener('load', () => {
+            log('页面加载完成，开始自动测试...');
+            setTimeout(testAppAvailability, 1000);
+        });
+        
+        // 监听错误
+        window.addEventListener('error', (event) => {
+            log(`❌ 全局错误: ${event.error?.message || event.message}`);
+        });
+        
+        window.addEventListener('unhandledrejection', (event) => {
+            log(`❌ 未处理的Promise拒绝: ${event.reason}`);
+        });
+    </script>
+</body>
+</html>
